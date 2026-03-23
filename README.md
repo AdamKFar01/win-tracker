@@ -1,4 +1,4 @@
-# 🏆 Win Tracker
+# 🏆 WinnersTrack
 
 A personal productivity tracker that helps you build better habits by scoring your daily wins across five life categories. Hit 200 points per category and reach your 1000-point daily goal.
 
@@ -66,7 +66,7 @@ python3 app.py
 **4. Open in your browser**
 
 ```
-http://localhost:5000
+http://localhost:5001
 ```
 
 The SQLite database (`wintracker.db`) is created automatically on first run.

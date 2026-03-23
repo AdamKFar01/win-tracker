@@ -92,6 +92,13 @@ init_db()
 def index():
     return render_template('index.html')
 
+@app.route('/sw.js')
+def service_worker():
+    response = app.send_static_file('js/sw.js')
+    response.headers['Content-Type'] = 'application/javascript'
+    response.headers['Service-Worker-Allowed'] = '/'
+    return response
+
 @app.route('/api/wins', methods=['GET', 'POST', 'DELETE'])
 def wins():
     conn = sqlite3.connect(DB_PATH)
@@ -459,4 +466,4 @@ def calendar_events_api():
         return jsonify(events_list)
 
 if __name__ == '__main__':
-    app.run(debug=True, port=5000)
+    app.run(debug=True, port=5001)

@@ -1,0 +1,18 @@
+{
+    "name": "WinnersTrack",
+    "short_name": "WinnersTrack",
+    "description": "Personal productivity tracker — hit your daily goals",
+    "start_url": "/",
+    "display": "standalone",
+    "orientation": "portrait",
+    "background_color": "#0a0e27",
+    "theme_color": "#1e3a8a",
+    "icons": [
+        {
+            "src": "/static/icons/icon.svg",
+            "sizes": "any",
+            "type": "image/svg+xml",
+            "purpose": "any"
+        }
+    ]
+}
