@@ -1,90 +1,119 @@
-# Win Tracker App
+# 🏆 Win Tracker
 
-A personal productivity tracker to help you reach daily goals across 5 categories: Physical, Mental, Health, Social, and Mood.
+A personal productivity tracker that helps you build better habits by scoring your daily wins across five life categories. Hit 200 points per category and reach your 1000-point daily goal.
+
+---
 
 ## Features
-- **Dashboard**: Track daily wins across 5 categories with a 1000 point goal (200 per category)
-- **Tasks**: Manage your to-do list with due dates
-- **Finance**: Track income and expenses
-- **Calendar**: View progress over time (coming soon)
-- **Reminders**: Set up recurring reminders (coming soon)
 
-## Setup Instructions
+- **Dashboard** — Log daily wins with points, duration, and notes. See your score per category and track the week with a bar chart.
+- **Tasks** — Manage to-do lists split into Today, Weekly, and Monthly. Expired tasks move to an Old Tasks archive.
+- **Goals** — Separate goal tracker for Weekly, Monthly, Yearly, and Lifelong goals.
+- **Calendar** — Add and view events by date with categories (University, Work, Health, etc.) and priority levels.
+- **Reminders** — Set Daily, One-Time, or Recurring (weekly/monthly) reminders with times.
+- **Finance** — Track income and expenses, view running balance, and browse recent transactions.
 
-### 1. Install Python
-Make sure you have Python 3.7+ installed. Check with:
+---
+
+## Tech Stack
+
+| Layer | Technology |
+|---|---|
+| Backend | Python 3 + Flask |
+| Database | SQLite (local file) |
+| Frontend | Vanilla JavaScript, HTML5, CSS3 |
+| Charts | Chart.js |
+| Font | Orbitron (Google Fonts) |
+
+No external database or cloud service required — everything runs locally.
+
+---
+
+## Installation
+
+### Prerequisites
+
+- Python 3.7 or higher
+- pip
+
+### Steps
+
+**1. Clone the repository**
+
 ```bash
-python3 --version
-```
-
-### 2. Install Flask
-```bash
-pip3 install flask
-```
-
-### 3. Run the App
-Navigate to the win-tracker folder and run:
-```bash
+git clone https://github.com/AdamKFar01/win-tracker.git
 cd win-tracker
+```
+
+**2. Install dependencies**
+
+```bash
+pip install -r requirements.txt
+```
+
+**3. Run the app**
+
+```bash
+./start.sh
+```
+
+Or directly:
+
+```bash
 python3 app.py
 ```
 
-### 4. Open in Browser
-The app will start at: http://localhost:5000
+**4. Open in your browser**
 
-Open this URL in your web browser (Chrome, Safari, etc.)
+```
+http://localhost:5000
+```
 
-## How to Use
+The SQLite database (`wintracker.db`) is created automatically on first run.
 
-### Logging Wins
-1. Select a category (Physical, Mental, Health, Social, Mood)
-2. Choose an activity from the dropdown (or add your own later)
-3. Enter duration in minutes (optional)
-4. Points are auto-suggested based on activity
-5. Click "Add Win"
+---
+
+## Usage
+
+### Logging a Win
+
+1. Select a date (defaults to today)
+2. Pick a category — Physical, Mental, Health, Social, or Mood
+3. Choose an activity from the dropdown
+4. Points are auto-filled based on the activity
+5. Click **Add Win**
+
+### Managing Activities
+
+In the Dashboard, scroll to **Manage Activities** to add, edit, or delete preset activities and their point values for each category.
 
 ### Points System
-- Each category has a goal of 200 points/day
-- Total daily goal: 1000 points
-- Activities have preset point values based on importance and typical duration
-- You can adjust points based on actual time spent
 
-### Tasks
-- Add tasks with optional due dates
-- Check off completed tasks
-- Delete tasks you no longer need
+| Category | Daily Goal |
+|---|---|
+| 💪 Physical | 200 pts |
+| ⛩️ Mental | 200 pts |
+| 🥩 Health | 200 pts |
+| 🃏 Social | 200 pts |
+| ☯️ Mood | 200 pts |
+| **Total** | **1000 pts** |
 
-### Finance Tracker
-- Log income and expenses
-- View total balance
-- Track recent transactions
+---
 
-## Customization
+## Data
 
-### Adding More Activities
-Edit the `activities` object in `/static/js/app.js` to add more preset activities with point values.
+All data is stored locally in `wintracker.db` (SQLite). This file is excluded from git — back it up manually if needed.
 
-### Changing Point Goals
-Currently set to 200 per category (1000 total). You can modify these in the HTML or add settings later.
+To migrate an existing database to the latest schema:
 
-### Styling
-Edit `/static/css/style.css` to change colors, fonts, and layout.
+```bash
+python3 migrate_database.py
+```
 
-## Data Storage
-- All data is stored in `wintracker.db` (SQLite database)
-- Database is created automatically on first run
-- Located in the win-tracker folder
-- Back up this file to preserve your data
+---
 
-## Development Mode
-- The app runs with `debug=True` by default
-- Changes to HTML/CSS/JS files: Just refresh the browser
-- Changes to Python files: Restart the app (Ctrl+C, then run again)
+## Development
 
-## Future Features
-- Calendar view with monthly/weekly breakdown
-- Reminders with notifications
-- Weekly/monthly reports
-- Data export (CSV/PDF)
-- Charts and graphs for progress tracking
-- Custom activity creation from the UI
+- Changes to HTML/CSS/JS take effect on browser refresh
+- Changes to `app.py` require restarting the server (`Ctrl+C` then run again)
+- Flask runs in debug mode by default on port 5000
