@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Win Tracker</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🏆 Win Tracker</h1>
+            <div class="date-selector">
+                <input type="date" id="currentDate" />
+            </div>
+        </header>
+
+        <nav class="tabs">
+            <button class="tab-btn active" data-tab="dashboard">Dashboard</button>
+            <button class="tab-btn" data-tab="calendar">Calendar</button>
+            <button class="tab-btn" data-tab="tasks">💎 Tasks</button>
+            <button class="tab-btn" data-tab="goals">🎯 Goals</button>
+            <button class="tab-btn" data-tab="reminders">⏰ Reminders</button>
+            <button class="tab-btn" data-tab="finance">💰 Finance</button>
+        </nav>
+
+        <!-- Dashboard Tab -->
+        <div class="tab-content active" id="dashboard">
+            <div class="summary-cards">
+                <div class="summary-card">
+                    <h3>💪 Physical</h3>
+                    <div class="points" id="physical-points">0</div>
+                    <div class="goal">/ 200</div>
+                </div>
+                <div class="summary-card">
+                    <h3>⛩️ Mental</h3>
+                    <div class="points" id="mental-points">0</div>
+                    <div class="goal">/ 200</div>
+                </div>
+                <div class="summary-card">
+                    <h3>🥩 Health</h3>
+                    <div class="points" id="health-points">0</div>
+                    <div class="goal">/ 200</div>
+                </div>
+                <div class="summary-card">
+                    <h3>🃏 Social</h3>
+                    <div class="points" id="social-points">0</div>
+                    <div class="goal">/ 200</div>
+                </div>
+                <div class="summary-card">
+                    <h3>☯️ Mood</h3>
+                    <div class="points" id="mood-points">0</div>
+                    <div class="goal">/ 200</div>
+                </div>
+                <div class="summary-card total">
+                    <h3>🎯 Total</h3>
+                    <div class="points" id="total-points">0</div>
+                    <div class="goal">/ 1000</div>
+                </div>
+            </div>
+
+            <div class="add-win-section">
+                <h2>Log a Win</h2>
+                <form id="winForm">
+                    <div class="form-group">
+                        <label>Category</label>
+                        <select id="category" required>
+                            <option value="">Select category</option>
+                            <option value="physical">💪 Physical</option>
+                            <option value="mental">⛩️ Mental</option>
+                            <option value="health">🥩 Health</option>
+                            <option value="social">🃏 Social</option>
+                            <option value="mood">☯️ Mood</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Activity</label>
+                        <select id="activity" required>
+                            <option value="">Select activity</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Duration (minutes)</label>
+                        <input type="number" id="duration" min="0" placeholder="Optional">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Description</label>
+                        <input type="text" id="description" placeholder="Optional notes about this win">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Points</label>
+                        <input type="number" id="points" min="0" required>
+                    </div>
+
+                    <button type="submit" class="btn-primary">Add Win</button>
+                </form>
+            </div>
+
+            <div class="wins-list">
+                <h2 id="winsListHeader">Today's Wins</h2>
+                <div id="winsList"></div>
+            </div>
+
+            <div class="week-chart">
+                <h2>This Week</h2>
+                <canvas id="weekChart"></canvas>
+            </div>
+
+            <!-- Activity Management Section -->
+            <div class="activity-management">
+                <h2>🔧 Manage Activities</h2>
+                <p style="color: #8b92b0; margin-bottom: 20px;">Add, edit, or delete preset activities and their point values for each category.</p>
+                
+                <div class="form-group">
+                    <label>Select Category</label>
+                    <select id="manageCategory">
+                        <option value="">Choose a category...</option>
+                        <option value="physical">💪 Physical</option>
+                        <option value="mental">⛩️ Mental</option>
+                        <option value="health">🥩 Health</option>
+                        <option value="social">🃏 Social</option>
+                        <option value="mood">☯️ Mood</option>
+                    </select>
+                </div>
+
+                <div id="activityManager" style="display: none;">
+                    <!-- Add New Activity Form -->
+                    <div class="add-activity-form">
+                        <h3>Add New Activity</h3>
+                        <form id="addActivityForm">
+                            <div class="form-row">
+                                <input type="text" id="newActivityName" placeholder="Activity name" required>
+                                <input type="number" id="newActivityPoints" placeholder="Points" min="0" required>
+                                <button type="submit" class="btn-primary">Add Activity</button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- Existing Activities List -->
+                    <div class="activities-list">
+                        <h3>Current Activities</h3>
+                        <div id="activitiesList"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Calendar Tab -->
+        <div class="tab-content" id="calendar">
+            <h2>📅 Calendar</h2>
+            
+            <!-- Calendar Navigation -->
+            <div class="calendar-nav">
+                <button class="btn-calendar-nav" onclick="previousMonth()">◀ Previous</button>
+                <h3 id="currentMonth"></h3>
+                <button class="btn-calendar-nav" onclick="nextMonth()">Next ▶</button>
+                <button class="btn-primary" onclick="goToToday()">Today</button>
+            </div>
+
+            <!-- Calendar Grid -->
+            <div class="calendar-grid">
+                <div class="calendar-header">Mon</div>
+                <div class="calendar-header">Tue</div>
+                <div class="calendar-header">Wed</div>
+                <div class="calendar-header">Thu</div>
+                <div class="calendar-header">Fri</div>
+                <div class="calendar-header">Sat</div>
+                <div class="calendar-header">Sun</div>
+                <div id="calendarDays"></div>
+            </div>
+
+            <!-- Add Event Form -->
+            <div class="add-event-section">
+                <h3>Add Calendar Event</h3>
+                <form id="calendarEventForm">
+                    <div class="form-row">
+                        <div class="form-group" style="flex: 2;">
+                            <label>Event Title *</label>
+                            <input type="text" id="eventTitle" required>
+                        </div>
+                        
+                        <div class="form-group" style="flex: 1;">
+                            <label>Date *</label>
+                            <input type="date" id="eventDate" required>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Start Time</label>
+                            <input type="time" id="eventStartTime">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>End Time</label>
+                            <input type="time" id="eventEndTime">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Category *</label>
+                            <select id="eventCategory" required>
+                                <option value="uni">🎓 University</option>
+                                <option value="work">💼 Work</option>
+                                <option value="hobbies">🎨 Hobbies</option>
+                                <option value="personal">👤 Personal</option>
+                                <option value="health">❤️ Health</option>
+                                <option value="social">👥 Social</option>
+                                <option value="other">📌 Other</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Importance *</label>
+                            <select id="eventImportance" required>
+                                <option value="normal">Normal</option>
+                                <option value="quite">Quite Important</option>
+                                <option value="very">Very Important</option>
+                                <option value="top">Top Priority</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Description</label>
+                        <textarea id="eventDescription" rows="3" placeholder="Additional details..."></textarea>
+                    </div>
+
+                    <button type="submit" class="btn-primary">Add Event</button>
+                </form>
+            </div>
+
+            <!-- Events List for Selected Date -->
+            <div class="events-list-section">
+                <h3>Events on <span id="selectedDate">Today</span></h3>
+                <div id="dayEventsList"></div>
+            </div>
+        </div>
+
+        <!-- Tasks Tab -->
+        <div class="tab-content" id="tasks">
+            <h2>Tasks & To-Do Lists</h2>
+            
+            <!-- Today's Tasks -->
+            <div class="collapsible-section">
+                <div class="section-header">
+                    <button class="collapse-btn" onclick="toggleSection('today-tasks')">▼</button>
+                    <h3>📅 Today's Tasks</h3>
+                </div>
+                <div class="section-content" id="today-tasks">
+                    <div class="add-task-section">
+                        <form id="todayTaskForm">
+                            <input type="text" class="task-input" placeholder="Add a task for today..." required>
+                            <button type="submit" class="btn-primary">Add</button>
+                        </form>
+                    </div>
+                    <div id="todayTasksList"></div>
+                </div>
+            </div>
+
+            <!-- Weekly Tasks -->
+            <div class="collapsible-section">
+                <div class="section-header">
+                    <button class="collapse-btn" onclick="toggleSection('weekly-tasks')">▼</button>
+                    <h3>📆 Weekly Tasks</h3>
+                </div>
+                <div class="section-content" id="weekly-tasks">
+                    <div class="add-task-section">
+                        <form id="weeklyTaskForm">
+                            <input type="text" class="task-input" placeholder="Add a weekly task..." required>
+                            <button type="submit" class="btn-primary">Add</button>
+                        </form>
+                    </div>
+                    <div id="weeklyTasksList"></div>
+                </div>
+            </div>
+
+            <!-- Monthly Tasks -->
+            <div class="collapsible-section">
+                <div class="section-header">
+                    <button class="collapse-btn" onclick="toggleSection('monthly-tasks')">▼</button>
+                    <h3>📋 Monthly Tasks</h3>
+                </div>
+                <div class="section-content" id="monthly-tasks">
+                    <div class="add-task-section">
+                        <form id="monthlyTaskForm">
+                            <input type="text" class="task-input" placeholder="Add a monthly task..." required>
+                            <button type="submit" class="btn-primary">Add</button>
+                        </form>
+                    </div>
+                    <div id="monthlyTasksList"></div>
+                </div>
+            </div>
+
+            <!-- Old/Expired Tasks -->
+            <div class="collapsible-section">
+                <div class="section-header">
+                    <button class="collapse-btn" onclick="toggleSection('old-tasks')">▼</button>
+                    <h3>🗂️ Old Tasks</h3>
+                </div>
+                <div class="section-content collapsed" id="old-tasks">
+                    <div id="oldTasksList"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Reminders Tab (now Goals) -->
+        <!-- Goals Tab -->
+        <div class="tab-content" id="goals">
+            <h2>Goals</h2>
+            
+            <!-- Weekly Goals -->
+            <div class="collapsible-section">
+                <div class="section-header">
+                    <button class="collapse-btn" onclick="toggleSection('weekly-goals')">▼</button>
+                    <h3>🎯 Weekly Goals</h3>
+                </div>
+                <div class="section-content" id="weekly-goals">
+                    <div class="add-task-section">
+                        <form id="weeklyGoalForm">
+                            <input type="text" class="task-input" placeholder="Add a weekly goal..." required>
+                            <button type="submit" class="btn-primary">Add</button>
+                        </form>
+                    </div>
+                    <div id="weeklyGoalsList"></div>
+                </div>
+            </div>
+
+            <!-- Monthly Goals -->
+            <div class="collapsible-section">
+                <div class="section-header">
+                    <button class="collapse-btn" onclick="toggleSection('monthly-goals')">▼</button>
+                    <h3>📊 Monthly Goals</h3>
+                </div>
+                <div class="section-content" id="monthly-goals">
+                    <div class="add-task-section">
+                        <form id="monthlyGoalForm">
+                            <input type="text" class="task-input" placeholder="Add a monthly goal..." required>
+                            <button type="submit" class="btn-primary">Add</button>
+                        </form>
+                    </div>
+                    <div id="monthlyGoalsList"></div>
+                </div>
+            </div>
+
+            <!-- Yearly Goals -->
+            <div class="collapsible-section">
+                <div class="section-header">
+                    <button class="collapse-btn" onclick="toggleSection('yearly-goals')">▼</button>
+                    <h3>🏆 Yearly Goals</h3>
+                </div>
+                <div class="section-content" id="yearly-goals">
+                    <div class="add-task-section">
+                        <form id="yearlyGoalForm">
+                            <input type="text" class="task-input" placeholder="Add a yearly goal..." required>
+                            <button type="submit" class="btn-primary">Add</button>
+                        </form>
+                    </div>
+                    <div id="yearlyGoalsList"></div>
+                </div>
+            </div>
+
+            <!-- Lifelong Goals -->
+            <div class="collapsible-section">
+                <div class="section-header">
+                    <button class="collapse-btn" onclick="toggleSection('lifelong-goals')">▼</button>
+                    <h3>⭐ Lifelong Goals</h3>
+                </div>
+                <div class="section-content" id="lifelong-goals">
+                    <div class="add-task-section">
+                        <form id="lifelongGoalForm">
+                            <input type="text" class="task-input" placeholder="Add a lifelong goal..." required>
+                            <button type="submit" class="btn-primary">Add</button>
+                        </form>
+                    </div>
+                    <div id="lifelongGoalsList"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Reminders Tab -->
+        <div class="tab-content" id="reminders">
+            <h2>Reminders</h2>
+            
+            <!-- Daily Reminders -->
+            <div class="collapsible-section">
+                <div class="section-header">
+                    <button class="collapse-btn" onclick="toggleSection('daily-reminders')">▼</button>
+                    <h3>🔔 Daily Reminders</h3>
+                </div>
+                <div class="section-content" id="daily-reminders">
+                    <div class="add-task-section">
+                        <form id="dailyReminderForm">
+                            <input type="text" class="task-input" placeholder="Add a daily reminder..." required style="flex: 2;">
+                            <input type="time" id="reminderTime" class="task-input" style="flex: 1;">
+                            <button type="submit" class="btn-primary">Add</button>
+                        </form>
+                    </div>
+                    <div id="dailyRemindersList"></div>
+                </div>
+            </div>
+
+            <!-- One-Time Reminders -->
+            <div class="collapsible-section">
+                <div class="section-header">
+                    <button class="collapse-btn" onclick="toggleSection('onetime-reminders')">▼</button>
+                    <h3>📌 One-Time Reminders</h3>
+                </div>
+                <div class="section-content" id="onetime-reminders">
+                    <div class="add-task-section">
+                        <form id="onetimeReminderForm">
+                            <input type="text" class="task-input" placeholder="Reminder text..." required style="flex: 2;">
+                            <input type="date" id="reminderDate" class="task-input" style="flex: 1;">
+                            <input type="time" id="reminderTimeOnce" class="task-input" style="flex: 1;">
+                            <button type="submit" class="btn-primary">Add</button>
+                        </form>
+                    </div>
+                    <div id="onetimeRemindersList"></div>
+                </div>
+            </div>
+
+            <!-- Custom Recurring Reminders -->
+            <div class="collapsible-section">
+                <div class="section-header">
+                    <button class="collapse-btn" onclick="toggleSection('recurring-reminders')">▼</button>
+                    <h3>🔁 Recurring Reminders</h3>
+                </div>
+                <div class="section-content" id="recurring-reminders">
+                    <div class="add-task-section">
+                        <form id="recurringReminderForm">
+                            <input type="text" class="task-input" placeholder="Reminder text..." required style="flex: 2;">
+                            <select class="task-input" id="recurringType" style="flex: 1;">
+                                <option value="daily">Daily</option>
+                                <option value="weekly">Weekly</option>
+                                <option value="monthly">Monthly</option>
+                            </select>
+                            <input type="time" id="reminderTimeRecurring" class="task-input" style="flex: 1;">
+                            <button type="submit" class="btn-primary">Add</button>
+                        </form>
+                    </div>
+                    <div id="recurringRemindersList"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Finance Tab -->
+        <div class="tab-content" id="finance">
+            <h2>Finance Tracker</h2>
+            <div class="finance-summary">
+                <div class="finance-card income">
+                    <h3>Income</h3>
+                    <div class="amount" id="totalIncome">£0.00</div>
+                </div>
+                <div class="finance-card expense">
+                    <h3>Expenses</h3>
+                    <div class="amount" id="totalExpense">£0.00</div>
+                </div>
+                <div class="finance-card balance">
+                    <h3>Balance</h3>
+                    <div class="amount" id="balance">£0.00</div>
+                </div>
+            </div>
+
+            <div class="add-finance-section">
+                <form id="financeForm">
+                    <div class="form-group">
+                        <label>Type</label>
+                        <select id="financeType" required>
+                            <option value="income">Income</option>
+                            <option value="expense">Expense</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Amount (£)</label>
+                        <input type="number" id="financeAmount" step="0.01" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Category</label>
+                        <input type="text" id="financeCategory" placeholder="e.g., Salary, Food, etc.">
+                    </div>
+                    <div class="form-group">
+                        <label>Description</label>
+                        <input type="text" id="financeDescription" placeholder="Optional">
+                    </div>
+                    <div class="form-group">
+                        <label>Date</label>
+                        <input type="date" id="financeDate" required>
+                    </div>
+                    <button type="submit" class="btn-primary">Add Transaction</button>
+                </form>
+            </div>
+
+            <div class="finance-list">
+                <h3>Recent Transactions</h3>
+                <div id="financeList"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>
