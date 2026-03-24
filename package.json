@@ -16,7 +16,8 @@
         "productName": "WinnersTrack",
         "mac": {
             "category": "public.app-category.productivity",
-            "target": [{ "target": "dmg", "arch": ["arm64", "x64"] }]
+            "icon": "build/icon.png",
+            "target": [{ "target": "dir", "arch": ["arm64"] }]
         },
         "files": [
             "main.js",
