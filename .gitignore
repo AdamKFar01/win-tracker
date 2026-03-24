@@ -25,6 +25,11 @@ env/
 # macOS
 .DS_Store
 
+# Electron / Node
+node_modules/
+dist/
+out/
+
 # IDE
 .vscode/
 .idea/

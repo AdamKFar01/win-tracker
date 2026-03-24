@@ -6,7 +6,10 @@ import os
 
 app = Flask(__name__)
 
-DB_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'wintracker.db')
+DB_PATH = os.environ.get(
+    'WINNERSTRACKBUILDER_DB',
+    os.path.join(os.path.dirname(os.path.abspath(__file__)), 'wintracker.db')
+)
 
 # Database setup
 def init_db():
@@ -92,12 +95,6 @@ init_db()
 def index():
     return render_template('index.html')
 
-@app.route('/sw.js')
-def service_worker():
-    response = app.send_static_file('js/sw.js')
-    response.headers['Content-Type'] = 'application/javascript'
-    response.headers['Service-Worker-Allowed'] = '/'
-    return response
 
 @app.route('/api/wins', methods=['GET', 'POST', 'DELETE'])
 def wins():
