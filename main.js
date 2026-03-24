@@ -19,9 +19,18 @@ function startFlask() {
         ? path.join(app.getPath('userData'), 'wintracker.db')
         : path.join(__dirname, 'wintracker.db');
 
+    // Electron strips PATH — prepend common Python locations so Flask is found
+    const expandedPath = [
+        '/opt/anaconda3/bin',
+        '/opt/homebrew/bin',
+        '/usr/local/bin',
+        '/usr/bin',
+        process.env.PATH || ''
+    ].join(':');
+
     flaskProcess = spawn('python3', [scriptPath], {
         cwd,
-        env: { ...process.env, WINNERSTRACKBUILDER_DB: dbPath }
+        env: { ...process.env, PATH: expandedPath, WINNERSTRACKBUILDER_DB: dbPath }
     });
 
     flaskProcess.stdout.on('data', d => console.log('Flask:', d.toString().trim()));
