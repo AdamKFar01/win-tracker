@@ -995,7 +995,6 @@ function createDayElement(day, otherMonth, date) {
     }
     
     // Show logo badge if this past/current day reached 1000 points
-    const today = new Date();
     const isPastOrToday = date <= today;
     if (isPastOrToday && !otherMonth && monthPointsData[dateToLocalString(date)] >= 1000) {
         const badge = document.createElement('img');
