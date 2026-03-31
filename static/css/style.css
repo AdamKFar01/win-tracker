@@ -1275,8 +1275,8 @@ html.light-mode #overallGrowth { color: #7c3aed; }
 
 /* ── Calendar logo badge ───────────────────────────────────── */
 .day-logo-badge {
-    width: 22px;
-    height: 22px;
+    width: 44px;
+    height: 44px;
     object-fit: contain;
     display: block;
     margin: 4px auto 0;
