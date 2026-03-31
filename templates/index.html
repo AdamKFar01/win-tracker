@@ -11,120 +11,100 @@
 <body>
     <div class="container">
         <header>
-            <h1>WinnersTrack</h1>
-            <div style="display:flex;align-items:center;gap:12px;">
-                <button id="themeToggle" class="theme-toggle" title="Toggle light/dark mode">☀</button>
-                <div class="date-selector">
-                    <input type="date" id="currentDate" />
-                </div>
+            <h1>🏆 WinnersTrack</h1>
+            <div class="date-selector">
+                <input type="date" id="currentDate" />
             </div>
         </header>
 
         <nav class="tabs">
             <button class="tab-btn active" data-tab="dashboard">Dashboard</button>
             <button class="tab-btn" data-tab="calendar">Calendar</button>
-            <button class="tab-btn" data-tab="tasks">Tasks</button>
-            <button class="tab-btn" data-tab="goals">Goals</button>
-            <button class="tab-btn" data-tab="reminders">Reminders</button>
-            <button class="tab-btn" data-tab="finance">Finance</button>
+            <button class="tab-btn" data-tab="tasks">💎 Tasks</button>
+            <button class="tab-btn" data-tab="goals">🎯 Goals</button>
+            <button class="tab-btn" data-tab="reminders">⏰ Reminders</button>
+            <button class="tab-btn" data-tab="finance">💰 Finance</button>
         </nav>
 
         <!-- Dashboard Tab -->
         <div class="tab-content active" id="dashboard">
             <div class="summary-cards">
                 <div class="summary-card">
-                    <h3>Physical</h3>
+                    <h3>💪 Physical</h3>
                     <div class="points" id="physical-points">0</div>
                     <div class="goal">/ 200</div>
                 </div>
                 <div class="summary-card">
-                    <h3>Work</h3>
-                    <div class="points" id="work-points">0</div>
+                    <h3>⛩️ Mental</h3>
+                    <div class="points" id="mental-points">0</div>
                     <div class="goal">/ 200</div>
                 </div>
                 <div class="summary-card">
-                    <h3>Health</h3>
+                    <h3>🥩 Health</h3>
                     <div class="points" id="health-points">0</div>
                     <div class="goal">/ 200</div>
                 </div>
                 <div class="summary-card">
-                    <h3>Relationships</h3>
-                    <div class="points" id="relationships-points">0</div>
+                    <h3>🃏 Social</h3>
+                    <div class="points" id="social-points">0</div>
                     <div class="goal">/ 200</div>
                 </div>
                 <div class="summary-card">
-                    <h3>Mindset &amp; Discipline</h3>
-                    <div class="points" id="mindset-points">0</div>
+                    <h3>☯️ Mood</h3>
+                    <div class="points" id="mood-points">0</div>
                     <div class="goal">/ 200</div>
                 </div>
                 <div class="summary-card total">
-                    <h3>Total</h3>
+                    <h3>🎯 Total</h3>
                     <div class="points" id="total-points">0</div>
                     <div class="goal">/ 1000</div>
                 </div>
             </div>
 
-            <!-- Two-column main area: Log/Wins on left, Radar chart on right -->
-            <div class="dashboard-main-row">
-                <div class="dashboard-left">
-                    <div class="add-win-section">
-                        <h2>Log a Win</h2>
-                        <form id="winForm">
-                            <div class="form-group">
-                                <label>Category</label>
-                                <select id="category" required>
-                                    <option value="">Select category</option>
-                                    <option value="physical">Physical</option>
-                                    <option value="work">Work</option>
-                                    <option value="health">Health</option>
-                                    <option value="relationships">Relationships</option>
-                                    <option value="mindset">Mindset &amp; Discipline</option>
-                                    <option value="other">Other…</option>
-                                </select>
-                                <input type="text" id="categoryOther" class="other-input" placeholder="Enter custom category…">
-                            </div>
-
-                            <div class="form-group">
-                                <label>Activity</label>
-                                <select id="activity" required>
-                                    <option value="">Select activity</option>
-                                </select>
-                                <input type="text" id="activityOther" class="other-input" placeholder="Enter custom activity…">
-                            </div>
-
-                            <div class="form-group">
-                                <label>Duration (minutes)</label>
-                                <input type="number" id="duration" min="0" placeholder="Optional">
-                            </div>
-
-                            <div class="form-group">
-                                <label>Description</label>
-                                <input type="text" id="description" placeholder="Optional notes about this win">
-                            </div>
-
-                            <div class="form-group">
-                                <label>Points</label>
-                                <input type="number" id="points" min="0" required>
-                            </div>
-
-                            <button type="submit" class="btn-primary">Add Win</button>
-                        </form>
+            <div class="add-win-section">
+                <h2>Log a Win</h2>
+                <form id="winForm">
+                    <div class="form-group">
+                        <label>Category</label>
+                        <select id="category" required>
+                            <option value="">Select category</option>
+                            <option value="physical">💪 Physical</option>
+                            <option value="mental">⛩️ Mental</option>
+                            <option value="health">🥩 Health</option>
+                            <option value="social">🃏 Social</option>
+                            <option value="mood">☯️ Mood</option>
+                        </select>
                     </div>
 
-                    <div class="wins-list">
-                        <h2 id="winsListHeader">Today's Wins</h2>
-                        <div id="winsList"></div>
+                    <div class="form-group">
+                        <label>Activity</label>
+                        <select id="activity" required>
+                            <option value="">Select activity</option>
+                        </select>
                     </div>
-                </div>
 
-                <div class="dashboard-right">
-                    <h2>Personal Pillars</h2>
-                    <div class="pillar-chart-container">
-                        <canvas id="pillarsChart"></canvas>
-                        <img src="/static/img/icon.png" class="pillar-logo-center" alt="">
+                    <div class="form-group">
+                        <label>Duration (minutes)</label>
+                        <input type="number" id="duration" min="0" placeholder="Optional">
                     </div>
-                    <div id="overallGrowth">Overall Growth: 0 / 1000</div>
-                </div>
+
+                    <div class="form-group">
+                        <label>Description</label>
+                        <input type="text" id="description" placeholder="Optional notes about this win">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Points</label>
+                        <input type="number" id="points" min="0" required>
+                    </div>
+
+                    <button type="submit" class="btn-primary">Add Win</button>
+                </form>
+            </div>
+
+            <div class="wins-list">
+                <h2 id="winsListHeader">Today's Wins</h2>
+                <div id="winsList"></div>
             </div>
 
             <div class="week-chart">
@@ -134,18 +114,18 @@
 
             <!-- Activity Management Section -->
             <div class="activity-management">
-                <h2>Manage Activities</h2>
+                <h2>🔧 Manage Activities</h2>
                 <p style="color: #8b92b0; margin-bottom: 20px;">Add, edit, or delete preset activities and their point values for each category.</p>
-
+                
                 <div class="form-group">
                     <label>Select Category</label>
                     <select id="manageCategory">
                         <option value="">Choose a category...</option>
-                        <option value="physical">Physical</option>
-                        <option value="work">Work</option>
-                        <option value="health">Health</option>
-                        <option value="relationships">Relationships</option>
-                        <option value="mindset">Mindset &amp; Discipline</option>
+                        <option value="physical">💪 Physical</option>
+                        <option value="mental">⛩️ Mental</option>
+                        <option value="health">🥩 Health</option>
+                        <option value="social">🃏 Social</option>
+                        <option value="mood">☯️ Mood</option>
                     </select>
                 </div>
 
@@ -173,13 +153,13 @@
 
         <!-- Calendar Tab -->
         <div class="tab-content" id="calendar">
-            <h2>Calendar</h2>
+            <h2>📅 Calendar</h2>
             
             <!-- Calendar Navigation -->
             <div class="calendar-nav">
-                <button class="btn-calendar-nav" onclick="previousMonth()">⟨ Previous</button>
+                <button class="btn-calendar-nav" onclick="previousMonth()">◀ Previous</button>
                 <h3 id="currentMonth"></h3>
-                <button class="btn-calendar-nav" onclick="nextMonth()">Next ⟩</button>
+                <button class="btn-calendar-nav" onclick="nextMonth()">Next ▶</button>
                 <button class="btn-primary" onclick="goToToday()">Today</button>
             </div>
 
@@ -225,13 +205,13 @@
                         <div class="form-group">
                             <label>Category *</label>
                             <select id="eventCategory" required>
-                                <option value="uni">University</option>
-                                <option value="work">Work</option>
-                                <option value="hobbies">Hobbies</option>
-                                <option value="personal">Personal</option>
-                                <option value="health">Health</option>
-                                <option value="social">Social</option>
-                                <option value="other">Other</option>
+                                <option value="uni">🎓 University</option>
+                                <option value="work">💼 Work</option>
+                                <option value="hobbies">🎨 Hobbies</option>
+                                <option value="personal">👤 Personal</option>
+                                <option value="health">❤️ Health</option>
+                                <option value="social">👥 Social</option>
+                                <option value="other">📌 Other</option>
                             </select>
                         </div>
                         
@@ -264,13 +244,13 @@
 
         <!-- Tasks Tab -->
         <div class="tab-content" id="tasks">
-            <h2>Tasks & Todo Lists</h2>
+            <h2>Tasks & To-Do Lists</h2>
             
             <!-- Today's Tasks -->
             <div class="collapsible-section">
                 <div class="section-header">
-                    <button class="collapse-btn" onclick="toggleSection('today-tasks')">⟩</button>
-                    <h3>Today's Tasks</h3>
+                    <button class="collapse-btn" onclick="toggleSection('today-tasks')">▼</button>
+                    <h3>📅 Today's Tasks</h3>
                 </div>
                 <div class="section-content" id="today-tasks">
                     <div class="add-task-section">
@@ -286,8 +266,8 @@
             <!-- Weekly Tasks -->
             <div class="collapsible-section">
                 <div class="section-header">
-                    <button class="collapse-btn" onclick="toggleSection('weekly-tasks')">⟩</button>
-                    <h3>Weekly Tasks</h3>
+                    <button class="collapse-btn" onclick="toggleSection('weekly-tasks')">▼</button>
+                    <h3>📆 Weekly Tasks</h3>
                 </div>
                 <div class="section-content" id="weekly-tasks">
                     <div class="add-task-section">
@@ -303,8 +283,8 @@
             <!-- Monthly Tasks -->
             <div class="collapsible-section">
                 <div class="section-header">
-                    <button class="collapse-btn" onclick="toggleSection('monthly-tasks')">⟩</button>
-                    <h3>Monthly Tasks</h3>
+                    <button class="collapse-btn" onclick="toggleSection('monthly-tasks')">▼</button>
+                    <h3>📋 Monthly Tasks</h3>
                 </div>
                 <div class="section-content" id="monthly-tasks">
                     <div class="add-task-section">
@@ -320,8 +300,8 @@
             <!-- Old/Expired Tasks -->
             <div class="collapsible-section">
                 <div class="section-header">
-                    <button class="collapse-btn" onclick="toggleSection('old-tasks')">⟩</button>
-                    <h3>Old Tasks</h3>
+                    <button class="collapse-btn" onclick="toggleSection('old-tasks')">▼</button>
+                    <h3>🗂️ Old Tasks</h3>
                 </div>
                 <div class="section-content collapsed" id="old-tasks">
                     <div id="oldTasksList"></div>
@@ -337,8 +317,8 @@
             <!-- Weekly Goals -->
             <div class="collapsible-section">
                 <div class="section-header">
-                    <button class="collapse-btn" onclick="toggleSection('weekly-goals')">⟩</button>
-                    <h3>Weekly Goals</h3>
+                    <button class="collapse-btn" onclick="toggleSection('weekly-goals')">▼</button>
+                    <h3>🎯 Weekly Goals</h3>
                 </div>
                 <div class="section-content" id="weekly-goals">
                     <div class="add-task-section">
@@ -354,8 +334,8 @@
             <!-- Monthly Goals -->
             <div class="collapsible-section">
                 <div class="section-header">
-                    <button class="collapse-btn" onclick="toggleSection('monthly-goals')">⟩</button>
-                    <h3>Monthly Goals</h3>
+                    <button class="collapse-btn" onclick="toggleSection('monthly-goals')">▼</button>
+                    <h3>📊 Monthly Goals</h3>
                 </div>
                 <div class="section-content" id="monthly-goals">
                     <div class="add-task-section">
@@ -371,8 +351,8 @@
             <!-- Yearly Goals -->
             <div class="collapsible-section">
                 <div class="section-header">
-                    <button class="collapse-btn" onclick="toggleSection('yearly-goals')">⟩</button>
-                    <h3>Yearly Goals</h3>
+                    <button class="collapse-btn" onclick="toggleSection('yearly-goals')">▼</button>
+                    <h3>🏆 Yearly Goals</h3>
                 </div>
                 <div class="section-content" id="yearly-goals">
                     <div class="add-task-section">
@@ -388,8 +368,8 @@
             <!-- Lifelong Goals -->
             <div class="collapsible-section">
                 <div class="section-header">
-                    <button class="collapse-btn" onclick="toggleSection('lifelong-goals')">⟩</button>
-                    <h3>Lifelong Goals</h3>
+                    <button class="collapse-btn" onclick="toggleSection('lifelong-goals')">▼</button>
+                    <h3>⭐ Lifelong Goals</h3>
                 </div>
                 <div class="section-content" id="lifelong-goals">
                     <div class="add-task-section">
@@ -410,8 +390,8 @@
             <!-- Daily Reminders -->
             <div class="collapsible-section">
                 <div class="section-header">
-                    <button class="collapse-btn" onclick="toggleSection('daily-reminders')">⟩</button>
-                    <h3>Daily Reminders</h3>
+                    <button class="collapse-btn" onclick="toggleSection('daily-reminders')">▼</button>
+                    <h3>🔔 Daily Reminders</h3>
                 </div>
                 <div class="section-content" id="daily-reminders">
                     <div class="add-task-section">
@@ -428,8 +408,8 @@
             <!-- One-Time Reminders -->
             <div class="collapsible-section">
                 <div class="section-header">
-                    <button class="collapse-btn" onclick="toggleSection('onetime-reminders')">⟩</button>
-                    <h3>One-Time Reminders</h3>
+                    <button class="collapse-btn" onclick="toggleSection('onetime-reminders')">▼</button>
+                    <h3>📌 One-Time Reminders</h3>
                 </div>
                 <div class="section-content" id="onetime-reminders">
                     <div class="add-task-section">
@@ -447,8 +427,8 @@
             <!-- Custom Recurring Reminders -->
             <div class="collapsible-section">
                 <div class="section-header">
-                    <button class="collapse-btn" onclick="toggleSection('recurring-reminders')">⟩</button>
-                    <h3>Recurring Reminders</h3>
+                    <button class="collapse-btn" onclick="toggleSection('recurring-reminders')">▼</button>
+                    <h3>🔁 Recurring Reminders</h3>
                 </div>
                 <div class="section-content" id="recurring-reminders">
                     <div class="add-task-section">

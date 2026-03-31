@@ -65,9 +65,6 @@ function createWindow() {
 }
 
 app.on('ready', () => {
-    if (process.platform === 'darwin' && app.dock && !app.isPackaged) {
-        app.dock.setIcon(path.join(__dirname, 'build/icon.png'));
-    }
     startFlask();
     waitForFlask(createWindow);
 });

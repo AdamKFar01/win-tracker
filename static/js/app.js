@@ -1,24 +1,3 @@
-// ── Theme toggle ────────────────────────────────────────────
-document.addEventListener('DOMContentLoaded', () => {
-    const themeToggle = document.getElementById('themeToggle');
-    if (localStorage.getItem('theme') === 'light') {
-        document.documentElement.classList.add('light-mode');
-        themeToggle.textContent = '☽';
-    }
-    themeToggle.addEventListener('click', () => {
-        const isLight = document.documentElement.classList.toggle('light-mode');
-        localStorage.setItem('theme', isLight ? 'light' : 'dark');
-        themeToggle.textContent = isLight ? '☽' : '☀';
-        // Rebuild charts with new colour palette
-        if (pillarsChartInstance) {
-            pillarsChartInstance.destroy();
-            pillarsChartInstance = null;
-        }
-        loadDailySummary();
-        loadWeekChart();
-    });
-});
-
 // Returns today's date as YYYY-MM-DD in local time (not UTC)
 function getLocalDateString() {
     const d = new Date();
@@ -32,10 +11,10 @@ function dateToLocalString(d) {
 // Activity presets with suggested points - now stored in database
 let activities = {
     physical: [],
-    work: [],
+    mental: [],
     health: [],
-    relationships: [],
-    mindset: []
+    social: [],
+    mood: []
 };
 
 // Default activities (will be added to DB if empty)
@@ -49,13 +28,13 @@ const defaultActivities = {
         { name: 'Cycling', points: 40 },
         { name: 'Swimming', points: 60 }
     ],
-    work: [
+    mental: [
+        { name: 'Cold shower', points: 30 },
         { name: 'Studied well', points: 80 },
-        { name: 'Focused work session', points: 70 },
-        { name: 'Learned something new', points: 60 },
         { name: 'Read a book', points: 50 },
-        { name: 'Completed a project task', points: 60 },
-        { name: 'Attended a lecture', points: 40 }
+        { name: 'Meditation', points: 40 },
+        { name: 'Learned something new', points: 60 },
+        { name: 'Focused work session', points: 70 }
     ],
     health: [
         { name: 'Good diet (no junk food)', points: 50 },
@@ -64,21 +43,21 @@ const defaultActivities = {
         { name: 'Slept 8+ hours', points: 60 },
         { name: 'Took vitamins', points: 10 },
     ],
-    relationships: [
+    social: [
         { name: 'Made new friends', points: 80 },
         { name: 'Went out with friends', points: 60 },
         { name: 'Had meaningful conversation', points: 50 },
         { name: 'Helped someone', points: 40 },
         { name: 'Attended social event', points: 70 }
     ],
-    mindset: [
-        { name: 'Cold shower', points: 30 },
-        { name: 'Meditation', points: 40 },
+    mood: [
         { name: 'Felt confident', points: 50 },
         { name: 'Felt motivated', points: 50 },
-        { name: 'Felt grateful', points: 35 },
+        { name: 'Felt happy', points: 40 },
         { name: 'Felt productive', points: 45 },
+        { name: 'Felt grateful', points: 35 },
         { name: 'Felt anxious', points: 10 },
+        { name: 'Felt depressed', points: 5 },
         { name: 'Felt stressed', points: 10 }
     ]
 };
@@ -99,10 +78,10 @@ async function loadActivitiesFromDatabase() {
         // Clear current activities
         activities = {
             physical: [],
-            work: [],
+            mental: [],
             health: [],
-            relationships: [],
-            mindset: []
+            social: [],
+            mood: []
         };
         
         // Organize by category
@@ -260,11 +239,11 @@ async function deleteActivity(activityId, category) {
 function updateActivityDropdown(category) {
     const activitySelect = document.getElementById('activity');
     const currentCategory = document.getElementById('category').value;
-
+    
     // Only update if we're viewing the same category
     if (currentCategory === category) {
         activitySelect.innerHTML = '<option value="">Select activity</option>';
-
+        
         if (activities[category]) {
             activities[category].forEach(activity => {
                 const option = document.createElement('option');
@@ -274,10 +253,6 @@ function updateActivityDropdown(category) {
                 activitySelect.appendChild(option);
             });
         }
-        const otherOpt = document.createElement('option');
-        otherOpt.value = 'other';
-        otherOpt.textContent = 'Other…';
-        activitySelect.appendChild(otherOpt);
     }
 }
 
@@ -306,21 +281,11 @@ dateInput.addEventListener('change', () => {
 document.getElementById('category').addEventListener('change', (e) => {
     const category = e.target.value;
     const activitySelect = document.getElementById('activity');
-    const categoryOther = document.getElementById('categoryOther');
-
-    // Show/hide custom category text input
-    if (category === 'other') {
-        categoryOther.classList.add('visible');
-        categoryOther.required = true;
-    } else {
-        categoryOther.classList.remove('visible');
-        categoryOther.required = false;
-        categoryOther.value = '';
-    }
-
+    const pointsInput = document.getElementById('points');
+    
     activitySelect.innerHTML = '<option value="">Select activity</option>';
-
-    if (category && category !== 'other' && activities[category]) {
+    
+    if (category && activities[category]) {
         activities[category].forEach(activity => {
             const option = document.createElement('option');
             option.value = activity.name;
@@ -329,53 +294,28 @@ document.getElementById('category').addEventListener('change', (e) => {
             activitySelect.appendChild(option);
         });
     }
-    // Always append "Other" option at the bottom
-    const otherOpt = document.createElement('option');
-    otherOpt.value = 'other';
-    otherOpt.textContent = 'Other…';
-    activitySelect.appendChild(otherOpt);
 });
 
-// Activity change listener - suggest points / show custom input
+// Activity change listener - suggest points
 document.getElementById('activity').addEventListener('change', (e) => {
     const selectedOption = e.target.options[e.target.selectedIndex];
-    const activityOther = document.getElementById('activityOther');
-
-    if (e.target.value === 'other') {
-        activityOther.classList.add('visible');
-        activityOther.required = true;
-        document.getElementById('points').value = '';
-    } else {
-        activityOther.classList.remove('visible');
-        activityOther.required = false;
-        activityOther.value = '';
-        const suggestedPoints = selectedOption.dataset.points;
-        if (suggestedPoints) {
-            document.getElementById('points').value = suggestedPoints;
-        }
+    const suggestedPoints = selectedOption.dataset.points;
+    
+    if (suggestedPoints) {
+        document.getElementById('points').value = suggestedPoints;
     }
 });
 
 // Win form submission
 document.getElementById('winForm').addEventListener('submit', async (e) => {
     e.preventDefault();
-
-    let category = document.getElementById('category').value;
-    let activity = document.getElementById('activity').value;
+    
+    const category = document.getElementById('category').value;
+    const activity = document.getElementById('activity').value;
     const duration = document.getElementById('duration').value;
     const description = document.getElementById('description').value;
     const points = document.getElementById('points').value;
     const date = dateInput.value;
-
-    // Resolve "Other" values
-    if (category === 'other') {
-        category = document.getElementById('categoryOther').value.trim();
-        if (!category) return;
-    }
-    if (activity === 'other') {
-        activity = document.getElementById('activityOther').value.trim();
-        if (!activity) return;
-    }
     
     try {
         const response = await fetch('/api/wins', {
@@ -404,104 +344,20 @@ document.getElementById('winForm').addEventListener('submit', async (e) => {
 // Load daily summary
 async function loadDailySummary() {
     const date = dateInput.value;
-
+    
     try {
         const response = await fetch(`/api/daily-summary?date=${date}`);
         const summary = await response.json();
-
+        
         document.getElementById('physical-points').textContent = summary.physical;
-        document.getElementById('work-points').textContent = summary.work;
+        document.getElementById('mental-points').textContent = summary.mental;
         document.getElementById('health-points').textContent = summary.health;
-        document.getElementById('relationships-points').textContent = summary.relationships;
-        document.getElementById('mindset-points').textContent = summary.mindset;
+        document.getElementById('social-points').textContent = summary.social;
+        document.getElementById('mood-points').textContent = summary.mood;
         document.getElementById('total-points').textContent = summary.total;
-
-        loadPillarsChart(summary);
     } catch (error) {
         console.error('Error loading summary:', error);
     }
-}
-
-// Personal Pillars radar chart
-let pillarsChartInstance = null;
-const pillarsLogoImg = new Image();
-pillarsLogoImg.src = '/static/img/icon.png';
-
-function loadPillarsChart(summary) {
-    const ctx = document.getElementById('pillarsChart').getContext('2d');
-    const data = [
-        summary.physical    || 0,
-        summary.work        || 0,
-        summary.health      || 0,
-        summary.relationships || 0,
-        summary.mindset     || 0
-    ];
-    const overall = data.reduce((a, b) => a + b, 0);
-    document.getElementById('overallGrowth').textContent = `Overall Growth: ${overall} / 1000`;
-
-    const logoPlugin = {
-        id: 'pillarsLogo',
-        afterDraw(chart) {
-            if (!pillarsLogoImg.complete) return;
-            const { ctx: c, chartArea } = chart;
-            const cx = (chartArea.left + chartArea.right) / 2;
-            const cy = (chartArea.top + chartArea.bottom) / 2;
-            const size = 38;
-            c.save();
-            c.globalAlpha = 0.75;
-            c.drawImage(pillarsLogoImg, cx - size / 2, cy - size / 2, size, size);
-            c.restore();
-        }
-    };
-
-    if (pillarsChartInstance) {
-        pillarsChartInstance.data.datasets[0].data = data;
-        pillarsChartInstance.update();
-        return;
-    }
-
-    const isLight = document.documentElement.classList.contains('light-mode');
-    const labelColor  = isLight ? '#7c3aed' : '#c084fc';
-    const gridColor   = isLight ? 'rgba(124, 58, 237, 0.18)' : 'rgba(192, 132, 252, 0.2)';
-
-    pillarsChartInstance = new Chart(ctx, {
-        type: 'radar',
-        data: {
-            labels: ['Physical', 'Work', 'Health', 'Relationships', 'Mindset & Discipline'],
-            datasets: [{
-                data,
-                backgroundColor: 'rgba(192, 132, 252, 0.15)',
-                borderColor: 'rgba(192, 132, 252, 0.8)',
-                pointBackgroundColor: '#c084fc',
-                pointBorderColor: '#c084fc',
-                pointRadius: 4,
-                borderWidth: 2
-            }]
-        },
-        options: {
-            responsive: true,
-            scales: {
-                r: {
-                    min: 0,
-                    max: 200,
-                    ticks: {
-                        display: false,
-                        stepSize: 50
-                    },
-                    grid: { color: gridColor },
-                    angleLines: { color: gridColor },
-                    pointLabels: {
-                        color: labelColor,
-                        font: { family: 'Inter', size: 11 }
-                    }
-                }
-            },
-            plugins: {
-                legend: { display: false }
-            }
-        },
-        plugins: [logoPlugin]
-    });
 }
 
 // Load wins list
@@ -533,9 +389,17 @@ async function loadWins() {
             const winItem = document.createElement('div');
             winItem.className = 'win-item';
             
+            const categoryEmojis = {
+                physical: '💪',
+                mental: '⛩️',
+                health: '🥩',
+                social: '🃏',
+                mood: '☯️'
+            };
+            
             winItem.innerHTML = `
                 <div class="win-item-info">
-                    <div class="win-item-category">${win.category.toUpperCase()}</div>
+                    <div class="win-item-category">${categoryEmojis[win.category]} ${win.category.toUpperCase()}</div>
                     <div>${win.activity}${win.duration ? ` (${win.duration} min)` : ''}</div>
                     ${win.description ? `<div class="win-item-description">${win.description}</div>` : ''}
                 </div>
@@ -552,26 +416,6 @@ async function loadWins() {
 
 // Week chart
 let weekChartInstance = null;
-const barLogoImg = new Image();
-barLogoImg.src = '/static/img/icon.png';
-
-const barLogoPlugin = {
-    id: 'barLogo',
-    afterDatasetsDraw(chart) {
-        if (!barLogoImg.complete) return;
-        const { ctx, data } = chart;
-        const dataset = chart.getDatasetMeta(0);
-        const size = 22;
-        dataset.data.forEach((bar, i) => {
-            if (data.datasets[0].data[i] >= 1000) {
-                ctx.save();
-                ctx.globalAlpha = 0.85;
-                ctx.drawImage(barLogoImg, bar.x - size / 2, bar.y - size - 4, size, size);
-                ctx.restore();
-            }
-        });
-    }
-};
 
 async function loadWeekChart() {
     try {
@@ -597,8 +441,8 @@ async function loadWeekChart() {
                 datasets: [{
                     label: 'Points',
                     data: points,
-                    backgroundColor: 'rgba(155, 89, 255, 0.6)',
-                    borderColor: 'rgba(155, 89, 255, 1)',
+                    backgroundColor: 'rgba(99, 102, 241, 0.6)',
+                    borderColor: 'rgba(99, 102, 241, 1)',
                     borderWidth: 1,
                     borderRadius: 4
                 }]
@@ -612,16 +456,15 @@ async function loadWeekChart() {
                     y: {
                         beginAtZero: true,
                         max: 1000,
-                        grid: { color: document.documentElement.classList.contains('light-mode') ? 'rgba(0,0,0,0.07)' : 'rgba(255,255,255,0.08)' },
-                        ticks: { color: document.documentElement.classList.contains('light-mode') ? '#6b7280' : '#8b92b0' }
+                        grid: { color: 'rgba(255,255,255,0.08)' },
+                        ticks: { color: '#8b92b0' }
                     },
                     x: {
-                        grid: { color: document.documentElement.classList.contains('light-mode') ? 'rgba(0,0,0,0.07)' : 'rgba(255,255,255,0.08)' },
-                        ticks: { color: document.documentElement.classList.contains('light-mode') ? '#6b7280' : '#8b92b0' }
+                        grid: { color: 'rgba(255,255,255,0.08)' },
+                        ticks: { color: '#8b92b0' }
                     }
                 }
-            },
-            plugins: [barLogoPlugin]
+            }
         });
     } catch (error) {
         console.error('Error loading week chart:', error);
@@ -759,11 +602,12 @@ async function loadTasksByPeriod(period, listId, taskType) {
             taskItem.className = `task-item ${task.completed ? 'completed' : ''}`;
             
             const isOld = period === 'old';
-
+            const emoji = taskType === 'goal' ? '🎯' : '✓';
+            
             taskItem.innerHTML = `
-                <input type="checkbox" ${task.completed ? 'checked' : ''}
+                <input type="checkbox" ${task.completed ? 'checked' : ''} 
                        onchange="toggleTask(${task.id}, this.checked)">
-                <div class="task-item-text">${task.task}</div>
+                <div class="task-item-text">${emoji} ${task.task}</div>
                 ${task.due_date && !isOld ? `<div class="task-item-date">Due: ${task.due_date}</div>` : ''}
                 ${isOld ? `<div class="task-item-date">Expired: ${task.due_date}</div>` : ''}
                 <button class="task-item-delete" onclick="deleteTask(${task.id})">Delete</button>
@@ -884,22 +728,10 @@ document.getElementById('financeDate').value = getLocalDateString();
 let currentCalendarDate = new Date();
 let selectedDate = new Date();
 let calendarEvents = [];
-let monthPointsData = {};
 
-async function loadMonthData(year, month) {
-    try {
-        const response = await fetch(`/api/month-data?year=${year}&month=${month + 1}`);
-        monthPointsData = await response.json();
-    } catch (error) {
-        console.error('Error loading month data:', error);
-        monthPointsData = {};
-    }
-}
-
-async function renderCalendar() {
+function renderCalendar() {
     const year = currentCalendarDate.getFullYear();
     const month = currentCalendarDate.getMonth();
-    await loadMonthData(year, month);
     
     // Update header
     const monthNames = ["January", "February", "March", "April", "May", "June",
@@ -994,25 +826,14 @@ function createDayElement(day, otherMonth, date) {
         dayDiv.appendChild(eventsContainer);
     }
     
-    // Show logo badge if this past/current day reached 1000 points
-    const today = new Date();
-    const isPastOrToday = date <= today;
-    if (isPastOrToday && !otherMonth && monthPointsData[dateToLocalString(date)] >= 1000) {
-        const badge = document.createElement('img');
-        badge.src = '/static/img/icon.png';
-        badge.className = 'day-logo-badge';
-        badge.alt = '';
-        dayDiv.appendChild(badge);
-    }
-
     dayDiv.onclick = () => selectDate(date);
-
+    
     return dayDiv;
 }
 
-async function selectDate(date) {
+function selectDate(date) {
     selectedDate = new Date(date);
-    await renderCalendar();
+    renderCalendar();
     loadEventsForSelectedDate();
     
     const dateStr = selectedDate.toLocaleDateString('en-US', { 
@@ -1024,20 +845,20 @@ async function selectDate(date) {
     document.getElementById('selectedDate').textContent = dateStr;
 }
 
-async function previousMonth() {
+function previousMonth() {
     currentCalendarDate.setMonth(currentCalendarDate.getMonth() - 1);
-    await renderCalendar();
+    renderCalendar();
 }
 
-async function nextMonth() {
+function nextMonth() {
     currentCalendarDate.setMonth(currentCalendarDate.getMonth() + 1);
-    await renderCalendar();
+    renderCalendar();
 }
 
-async function goToToday() {
+function goToToday() {
     currentCalendarDate = new Date();
     selectedDate = new Date();
-    await renderCalendar();
+    renderCalendar();
     loadEventsForSelectedDate();
 }
 
@@ -1068,7 +889,7 @@ document.getElementById('calendarEventForm').addEventListener('submit', async (e
             // Set default date to today
             document.getElementById('eventDate').value = getLocalDateString();
             await loadCalendarEvents();
-            await renderCalendar();
+            renderCalendar();
             loadEventsForSelectedDate();
         }
     } catch (error) {
@@ -1110,7 +931,17 @@ function loadEventsForSelectedDate() {
         const eventDiv = document.createElement('div');
         eventDiv.className = `calendar-event-item importance-${event.importance}`;
         
-        const timeStr = event.start_time
+        const categoryEmojis = {
+            uni: '🎓',
+            work: '💼',
+            hobbies: '🎨',
+            personal: '👤',
+            health: '❤️',
+            social: '👥',
+            other: '📌'
+        };
+        
+        const timeStr = event.start_time 
             ? `${event.start_time}${event.end_time ? ' - ' + event.end_time : ''}`
             : 'All day';
         
@@ -1122,7 +953,7 @@ function loadEventsForSelectedDate() {
                 </div>
             </div>
             <div class="event-details">
-                <span class="event-badge category">${event.category.toUpperCase()}</span>
+                <span class="event-badge category">${categoryEmojis[event.category]} ${event.category.toUpperCase()}</span>
                 <span class="event-badge importance">${event.importance.toUpperCase()}</span>
             </div>
             ${event.description ? `<div class="event-description">${event.description}</div>` : ''}
@@ -1137,11 +968,11 @@ function loadEventsForSelectedDate() {
 
 async function deleteCalendarEvent(id) {
     if (!confirm('Are you sure you want to delete this event?')) return;
-
+    
     try {
         await fetch(`/api/calendar-events?id=${id}`, { method: 'DELETE' });
         await loadCalendarEvents();
-        await renderCalendar();
+        renderCalendar();
         loadEventsForSelectedDate();
     } catch (error) {
         console.error('Error deleting event:', error);
@@ -1238,7 +1069,7 @@ async function loadRemindersByType(type, listId, recurring = false) {
             
             const timeStr = reminder.time ? ` at ${reminder.time}` : '';
             const dateStr = reminder.date ? ` on ${reminder.date}` : '';
-            const typeLabel = reminder.recurring ? reminder.reminder_type : '';
+            const typeLabel = reminder.recurring ? `🔁 ${reminder.reminder_type}` : '📌';
             
             reminderItem.innerHTML = `
                 <input type="checkbox" ${!reminder.active ? 'checked' : ''} 
@@ -1282,7 +1113,7 @@ async function deleteReminder(id) {
 async function initializeApp() {
     await loadActivitiesFromDatabase();
     await loadCalendarEvents();
-    await renderCalendar();
+    renderCalendar();
     loadEventsForSelectedDate();
     loadDailySummary();
     loadWins();
