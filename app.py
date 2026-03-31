@@ -131,11 +131,11 @@ def wins():
                 'id': win[0],
                 'category': win[1],
                 'activity': win[2],
-                'description': win[3],
-                'points': win[4],
-                'duration': win[5],
-                'date': win[6],
-                'timestamp': win[7]
+                'points': win[3],
+                'duration': win[4],
+                'date': win[5],
+                'timestamp': win[6],
+                'description': win[7] if len(win) > 7 else ''
             })
         
         return jsonify(wins_list)

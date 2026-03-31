@@ -425,7 +425,7 @@ async function loadDailySummary() {
 // Personal Pillars radar chart
 let pillarsChartInstance = null;
 const pillarsLogoImg = new Image();
-pillarsLogoImg.src = '/static/img/icon.png';
+pillarsLogoImg.src = '/static/img/icon-b.png';
 
 function loadPillarsChart(summary) {
     const ctx = document.getElementById('pillarsChart').getContext('2d');
