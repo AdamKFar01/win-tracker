@@ -998,7 +998,7 @@ function createDayElement(day, otherMonth, date) {
     const isPastOrToday = date <= today;
     if (isPastOrToday && !otherMonth && monthPointsData[dateToLocalString(date)] >= 1000) {
         const badge = document.createElement('img');
-        badge.src = '/static/img/icon.png';
+        badge.src = '/static/img/icon-b.png';
         badge.className = 'day-logo-badge';
         badge.alt = '';
         dayDiv.appendChild(badge);
