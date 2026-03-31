@@ -85,6 +85,16 @@ def init_db():
                   description TEXT,
                   created_at TEXT NOT NULL)''')
     
+    # Pillar scores table (one persistent row per user)
+    c.execute('''CREATE TABLE IF NOT EXISTS pillar_scores
+                 (id INTEGER PRIMARY KEY,
+                  physical REAL DEFAULT 0,
+                  work REAL DEFAULT 0,
+                  health REAL DEFAULT 0,
+                  relationships REAL DEFAULT 0,
+                  mindset REAL DEFAULT 0)''')
+    c.execute('INSERT OR IGNORE INTO pillar_scores (id) VALUES (1)')
+
     conn.commit()
     conn.close()
 
@@ -481,6 +491,32 @@ def month_data():
     conn.close()
 
     return jsonify({row[0]: row[1] for row in rows})
+
+
+@app.route('/api/pillar-scores', methods=['GET', 'POST'])
+def pillar_scores_api():
+    conn = sqlite3.connect(DB_PATH)
+    c = conn.cursor()
+
+    if request.method == 'POST':
+        data = request.json
+        c.execute('''INSERT OR REPLACE INTO pillar_scores
+                     (id, physical, work, health, relationships, mindset)
+                     VALUES (1, ?, ?, ?, ?, ?)''',
+                  (data.get('physical', 0), data.get('work', 0),
+                   data.get('health', 0), data.get('relationships', 0),
+                   data.get('mindset', 0)))
+        conn.commit()
+        conn.close()
+        return jsonify({'success': True})
+
+    c.execute('SELECT physical, work, health, relationships, mindset FROM pillar_scores WHERE id = 1')
+    row = c.fetchone()
+    conn.close()
+    if row:
+        return jsonify({'physical': row[0], 'work': row[1], 'health': row[2],
+                        'relationships': row[3], 'mindset': row[4]})
+    return jsonify({'physical': 0, 'work': 0, 'health': 0, 'relationships': 0, 'mindset': 0})
 
 
 if __name__ == '__main__':

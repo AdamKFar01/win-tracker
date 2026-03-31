@@ -416,9 +416,43 @@ async function loadDailySummary() {
         document.getElementById('mindset-points').textContent = summary.mindset;
         document.getElementById('total-points').textContent = summary.total;
 
-        loadPillarsChart(summary);
     } catch (error) {
         console.error('Error loading summary:', error);
+    }
+}
+
+async function loadPillarScores() {
+    try {
+        const response = await fetch('/api/pillar-scores');
+        const scores = await response.json();
+        document.getElementById('score-physical').value      = scores.physical;
+        document.getElementById('score-work').value          = scores.work;
+        document.getElementById('score-health').value        = scores.health;
+        document.getElementById('score-relationships').value = scores.relationships;
+        document.getElementById('score-mindset').value       = scores.mindset;
+        loadPillarsChart(scores);
+    } catch (error) {
+        console.error('Error loading pillar scores:', error);
+    }
+}
+
+async function savePillarScores() {
+    const scores = {
+        physical:      parseFloat(document.getElementById('score-physical').value)      || 0,
+        work:          parseFloat(document.getElementById('score-work').value)          || 0,
+        health:        parseFloat(document.getElementById('score-health').value)        || 0,
+        relationships: parseFloat(document.getElementById('score-relationships').value) || 0,
+        mindset:       parseFloat(document.getElementById('score-mindset').value)       || 0
+    };
+    try {
+        await fetch('/api/pillar-scores', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(scores)
+        });
+        loadPillarsChart(scores);
+    } catch (error) {
+        console.error('Error saving pillar scores:', error);
     }
 }
 
@@ -427,17 +461,17 @@ let pillarsChartInstance = null;
 const pillarsLogoImg = new Image();
 pillarsLogoImg.src = '/static/img/icon-b.png';
 
-function loadPillarsChart(summary) {
+function loadPillarsChart(scores) {
     const ctx = document.getElementById('pillarsChart').getContext('2d');
     const data = [
-        summary.physical    || 0,
-        summary.work        || 0,
-        summary.health      || 0,
-        summary.relationships || 0,
-        summary.mindset     || 0
+        scores.physical    || 0,
+        scores.work        || 0,
+        scores.health      || 0,
+        scores.relationships || 0,
+        scores.mindset     || 0
     ];
     const overall = data.reduce((a, b) => a + b, 0);
-    document.getElementById('overallGrowth').textContent = `Overall Growth: ${overall} / 1000`;
+    document.getElementById('overallGrowth').textContent = `Overall Growth: ${overall.toFixed(1)} / 50`;
 
     const logoPlugin = {
         id: 'pillarsLogo',
@@ -483,7 +517,7 @@ function loadPillarsChart(summary) {
             scales: {
                 r: {
                     min: 0,
-                    max: 200,
+                    max: 10,
                     ticks: {
                         display: false,
                         stepSize: 50
@@ -1284,6 +1318,7 @@ async function initializeApp() {
     await renderCalendar();
     loadEventsForSelectedDate();
     loadDailySummary();
+    loadPillarScores();
     loadWins();
     loadWeekChart();
     setupTaskForms();
