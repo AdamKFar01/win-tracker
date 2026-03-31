@@ -65,10 +65,10 @@ body {
 }
 
 h2, h3 {
-    color: #5cd9ff;
-    font-weight: 800;
+    color: #c084fc;
+    font-weight: 400;
     letter-spacing: 0.3px;
-    text-shadow: 0 0 10px rgba(92, 217, 255, 0.4);
+    text-shadow: 0 0 10px rgba(192, 132, 252, 0.4);
 }
 
 p {
@@ -83,12 +83,15 @@ header {
 }
 
 h1 {
-    color: #5cd9ff;
+    background: linear-gradient(to right, #c084fc, #00c9a7);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
     font-size: 2em;
-    font-weight: 800;
+    font-weight: 400;
     text-transform: uppercase;
     letter-spacing: 3px;
-    text-shadow: 0 0 20px rgba(92, 217, 255, 0.8), 0 0 40px rgba(92, 217, 255, 0.4);
+    text-shadow: none;
 }
 
 .date-selector input {
@@ -97,15 +100,15 @@ h1 {
     border-radius: 8px;
     font-size: 1em;
     background: #0f1724;
-    color: #5cd9ff;
+    color: #c084fc;
     font-family: 'Inter', sans-serif;
-    font-weight: 600;
+    font-weight: 400;
 }
 
 .date-selector input:focus {
     outline: none;
-    border-color: #5cd9ff;
-    box-shadow: 0 0 10px rgba(92, 217, 255, 0.4);
+    border-color: #c084fc;
+    box-shadow: 0 0 10px rgba(192, 132, 252, 0.4);
 }
 
 .tabs {
@@ -122,7 +125,7 @@ h1 {
     cursor: pointer;
     font-size: 0.95em;
     font-family: 'Inter', sans-serif;
-    font-weight: 500;
+    font-weight: 400;
     color: #8b92b0;
     transition: all 0.3s;
     border-bottom: 2px solid transparent;
@@ -130,13 +133,13 @@ h1 {
 }
 
 .tab-btn:hover {
-    color: #5cd9ff;
+    color: #c084fc;
 }
 
 .tab-btn.active {
-    color: #5cd9ff;
-    border-bottom-color: #5cd9ff;
-    text-shadow: 0 0 10px rgba(92, 217, 255, 0.5);
+    color: #c084fc;
+    border-bottom-color: #c084fc;
+    text-shadow: 0 0 10px rgba(192, 132, 252, 0.5);
 }
 
 .tab-content {
@@ -156,54 +159,71 @@ h1 {
 }
 
 .summary-card {
-    background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+    background: linear-gradient(135deg, rgba(59, 7, 100, 0.3) 0%, transparent 70%);
     padding: 20px;
     border-radius: 15px;
     text-align: center;
-    color: white;
-    box-shadow: 0 4px 15px rgba(92, 217, 255, 0.25), 0 0 30px rgba(92, 217, 255, 0.08);
-    border: 1px solid rgba(92, 217, 255, 0.3);
+    box-shadow: 0 0 15px rgba(192, 132, 252, 0.15);
+    border: 1px solid rgba(192, 132, 252, 0.3);
 }
 
 .summary-card h3 {
     font-size: 1em;
-    font-weight: 700;
+    font-weight: 400;
     margin-bottom: 10px;
-    text-shadow: 0 0 8px rgba(92, 217, 255, 0.5);
+    text-shadow: none;
+    color: #c084fc;
 }
 
 .summary-card.total {
-    background: linear-gradient(135deg, #0c1e4a 0%, #1e40af 100%);
-    box-shadow: 0 4px 20px rgba(92, 217, 255, 0.4), 0 0 40px rgba(92, 217, 255, 0.15);
-    border: 2px solid rgba(92, 217, 255, 0.5);
+    background: linear-gradient(135deg, rgba(59, 7, 100, 0.3) 0%, transparent 70%);
+    box-shadow: 0 0 20px rgba(192, 132, 252, 0.2);
+    border: 1px solid rgba(192, 132, 252, 0.4);
 }
 
 .summary-card .points {
     font-size: 2.5em;
-    font-weight: 800;
+    font-weight: 400;
     margin: 10px 0;
+    color: #c084fc;
 }
 
 .summary-card .goal {
     font-size: 0.9em;
-    opacity: 0.9;
+    color: rgba(192, 132, 252, 0.65);
 }
 
 /* ── Form sections / cards ─────────────────────────────────── */
 .add-win-section,
-.add-task-section,
 .add-finance-section {
-    background: #0f1724;
+    background: linear-gradient(135deg, rgba(59, 7, 100, 0.3) 0%, transparent 70%);
     padding: 25px;
-    border-radius: 15px;
+    border-radius: 8px;
     margin-bottom: 30px;
-    border: 1px solid rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(192, 132, 252, 0.2);
+}
+
+.add-task-section {
+    margin-bottom: 20px;
+}
+
+/* ── Section heading separators ────────────────────────────── */
+.tab-content > h2 {
+    padding-bottom: 18px;
+    margin-bottom: 25px;
+    border-bottom: 1px solid rgba(192, 132, 252, 0.25);
 }
 
 .add-win-section h2,
 .wins-list h2,
-.week-chart h2 {
+.week-chart h2,
+.activity-management h2,
+.add-event-section h3,
+.events-list-section h3,
+.finance-list h3 {
+    padding-bottom: 14px;
     margin-bottom: 20px;
+    border-bottom: 1px solid rgba(192, 132, 252, 0.18);
 }
 
 .form-group {
@@ -214,7 +234,7 @@ h1 {
     display: block;
     margin-bottom: 5px;
     color: #8b92b0;
-    font-weight: 500;
+    font-weight: 400;
     font-size: 0.9em;
 }
 
@@ -234,34 +254,38 @@ h1 {
 .form-group input:focus,
 .form-group select:focus {
     outline: none;
-    border-color: #5cd9ff;
-    box-shadow: 0 0 10px rgba(92, 217, 255, 0.3);
+    border-color: #c084fc;
+    box-shadow: 0 0 10px rgba(192, 132, 252, 0.3);
 }
 
 .btn-primary {
-    background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
-    color: white;
+    background: transparent;
+    color: #c084fc;
     padding: 12px 30px;
-    border: 1px solid rgba(92, 217, 255, 0.3);
+    border: 1px solid #c084fc;
     border-radius: 8px;
     font-size: 0.95em;
     font-family: 'Inter', sans-serif;
-    font-weight: 700;
+    font-weight: 400;
     letter-spacing: 0.3px;
     cursor: pointer;
     transition: all 0.3s;
-    box-shadow: 0 4px 15px rgba(92, 217, 255, 0.2);
+    box-shadow: 0 0 8px rgba(192, 132, 252, 0.2);
 }
 
 .btn-primary:hover {
     transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(92, 217, 255, 0.4);
-    border-color: #5cd9ff;
+    background: rgba(192, 132, 252, 0.1);
+    box-shadow: 0 0 15px rgba(192, 132, 252, 0.35);
 }
 
 /* ── Wins list ─────────────────────────────────────────────── */
 .wins-list {
     margin-bottom: 30px;
+    padding: 25px;
+    border: 1px solid rgba(192, 132, 252, 0.2);
+    border-radius: 8px;
+    background: linear-gradient(135deg, rgba(59, 7, 100, 0.18) 0%, transparent 70%);
 }
 
 #winsList {
@@ -271,13 +295,14 @@ h1 {
 }
 
 .win-item {
-    background: #0f1724;
+    background: rgba(255, 255, 255, 0.03);
+
     padding: 15px;
     border-radius: 10px;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    border: 1px solid rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.08);
     gap: 15px;
 }
 
@@ -286,9 +311,9 @@ h1 {
 }
 
 .win-item-category {
-    font-weight: 700;
-    color: #5cd9ff;
-    text-shadow: 0 0 5px rgba(92, 217, 255, 0.3);
+    font-weight: 400;
+    color: #c084fc;
+    text-shadow: 0 0 5px rgba(192, 132, 252, 0.3);
 }
 
 .win-item-description {
@@ -300,31 +325,35 @@ h1 {
 
 .win-item-points {
     font-size: 1.2em;
-    font-weight: 700;
-    color: #3b82f6;
+    font-weight: 400;
+    color: #c084fc;
 }
 
 .win-item-delete {
-    background: #dc2626;
-    color: white;
-    border: none;
+    background: transparent;
+    color: #ff6b6b;
+    border: 1px solid rgba(255, 107, 107, 0.6);
     padding: 8px 15px;
     border-radius: 5px;
     cursor: pointer;
     font-size: 0.9em;
     font-family: 'Inter', sans-serif;
-    font-weight: 600;
+    font-weight: 400;
     transition: all 0.3s;
 }
 
 .win-item-delete:hover {
-    background: #991b1b;
+    background: rgba(255, 107, 107, 0.12);
     transform: translateY(-2px);
 }
 
 /* ── Week chart ────────────────────────────────────────────── */
 .week-chart {
     margin-top: 30px;
+    padding: 25px;
+    border: 1px solid rgba(192, 132, 252, 0.2);
+    border-radius: 8px;
+    background: linear-gradient(135deg, rgba(59, 7, 100, 0.18) 0%, transparent 70%);
 }
 
 #weekChart {
@@ -335,21 +364,18 @@ h1 {
 .activity-management {
     margin-top: 40px;
     padding: 25px;
-    background: #0f1724;
-    border-radius: 15px;
-    border: 1px solid rgba(255, 255, 255, 0.06);
+    background: linear-gradient(135deg, rgba(59, 7, 100, 0.18) 0%, transparent 70%);
+    border: 1px solid rgba(192, 132, 252, 0.2);
+    border-radius: 8px;
 }
 
-.activity-management h2 {
-    margin-bottom: 10px;
-}
 
 .add-activity-form {
-    background: #121b2e;
+    background: transparent;
     padding: 20px;
-    border-radius: 10px;
+    border-radius: 8px;
     margin-bottom: 20px;
-    border: 1px solid rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(192, 132, 252, 0.15);
 }
 
 .add-activity-form h3 {
@@ -379,15 +405,15 @@ h1 {
 
 .form-row input:focus {
     outline: none;
-    border-color: #5cd9ff;
-    box-shadow: 0 0 10px rgba(92, 217, 255, 0.3);
+    border-color: #c084fc;
+    box-shadow: 0 0 10px rgba(192, 132, 252, 0.3);
 }
 
 .activities-list {
-    background: #121b2e;
+    background: transparent;
     padding: 20px;
-    border-radius: 10px;
-    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 8px;
+    border: 1px solid rgba(192, 132, 252, 0.15);
 }
 
 .activities-list h3 {
@@ -400,8 +426,9 @@ h1 {
     justify-content: space-between;
     align-items: center;
     padding: 12px 15px;
-    background: #080d14;
-    border: 1px solid rgba(255, 255, 255, 0.06);
+    background: rgba(255, 255, 255, 0.03);
+
+    border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: 8px;
     margin-bottom: 10px;
 }
@@ -413,8 +440,8 @@ h1 {
     flex: 1;
 }
 
-.activity-item-name   { color: #ffffff; font-weight: 500; }
-.activity-item-points { color: #5cd9ff; font-weight: 700; }
+.activity-item-name   { color: #ffffff; font-weight: 400; }
+.activity-item-points { color: #c084fc; font-weight: 400; }
 
 .activity-item-actions {
     display: flex;
@@ -429,14 +456,14 @@ h1 {
     cursor: pointer;
     font-size: 0.85em;
     font-family: 'Inter', sans-serif;
-    font-weight: 600;
+    font-weight: 400;
     transition: all 0.3s;
 }
 
-.btn-edit              { background: #3b82f6; color: white; }
-.btn-edit:hover        { background: #2563eb; transform: translateY(-2px); }
-.btn-delete-activity   { background: #dc2626; color: white; }
-.btn-delete-activity:hover { background: #991b1b; transform: translateY(-2px); }
+.btn-edit              { background: #c084fc; color: white; }
+.btn-edit:hover        { background: #a855f7; transform: translateY(-2px); }
+.btn-delete-activity   { background: transparent; color: #ff6b6b; border: 1px solid rgba(255, 107, 107, 0.6); }
+.btn-delete-activity:hover { background: rgba(255, 107, 107, 0.12); transform: translateY(-2px); }
 
 /* ── Calendar ──────────────────────────────────────────────── */
 .calendar-nav {
@@ -445,9 +472,9 @@ h1 {
     align-items: center;
     margin-bottom: 20px;
     padding: 15px;
-    background: #0f1724;
-    border-radius: 10px;
-    border: 1px solid rgba(255, 255, 255, 0.06);
+    background: linear-gradient(135deg, rgba(59, 7, 100, 0.18) 0%, transparent 70%);
+    border-radius: 8px;
+    border: 1px solid rgba(192, 132, 252, 0.2);
 }
 
 .calendar-nav h3 {
@@ -457,42 +484,44 @@ h1 {
 
 .btn-calendar-nav {
     background: #121b2e;
-    color: #5cd9ff;
+    color: #c084fc;
     border: 1px solid rgba(255, 255, 255, 0.08);
     padding: 8px 15px;
     border-radius: 8px;
     cursor: pointer;
     font-family: 'Inter', sans-serif;
-    font-weight: 600;
+    font-weight: 400;
     transition: all 0.3s;
 }
 
 .btn-calendar-nav:hover {
     background: #1a2840;
-    border-color: #5cd9ff;
-    box-shadow: 0 0 10px rgba(92, 217, 255, 0.2);
+    border-color: #c084fc;
+    box-shadow: 0 0 10px rgba(192, 132, 252, 0.2);
 }
 
 .calendar-grid {
     display: grid;
     grid-template-columns: repeat(7, 1fr);
     gap: 5px;
-    background: #0f1724;
+    background: linear-gradient(135deg, rgba(59, 7, 100, 0.18) 0%, transparent 70%);
     padding: 15px;
-    border-radius: 10px;
-    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 8px;
+    border: 1px solid rgba(192, 132, 252, 0.2);
     margin-bottom: 30px;
 }
 
 .calendar-header {
-    background: #121b2e;
-    color: #5cd9ff;
+    background: rgba(255, 255, 255, 0.03);
+
+    color: #c084fc;
     text-align: center;
     padding: 10px;
-    font-weight: 700;
+    font-weight: 400;
     border-radius: 5px;
     font-size: 0.9em;
     grid-column: span 1;
+    border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 #calendarDays {
@@ -500,8 +529,9 @@ h1 {
 }
 
 .calendar-day {
-    background: #121b2e;
-    border: 1px solid rgba(255, 255, 255, 0.06);
+    background: rgba(255, 255, 255, 0.03);
+
+    border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: 8px;
     padding: 10px;
     min-height: 80px;
@@ -513,32 +543,32 @@ h1 {
 
 .calendar-day:hover {
     background: #1a2840;
-    border-color: rgba(92, 217, 255, 0.35);
-    box-shadow: 0 0 10px rgba(92, 217, 255, 0.12);
+    border-color: rgba(192, 132, 252, 0.35);
+    box-shadow: 0 0 10px rgba(192, 132, 252, 0.12);
 }
 
 .calendar-day.today {
-    background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
-    border-color: #5cd9ff;
-    box-shadow: 0 0 15px rgba(92, 217, 255, 0.35);
+    background: linear-gradient(135deg, #3b0764 0%, #c084fc 100%);
+    border-color: #c084fc;
+    box-shadow: 0 0 15px rgba(192, 132, 252, 0.35);
 }
 
 .calendar-day.other-month { opacity: 0.3; }
 
 .calendar-day.selected {
-    border: 2px solid #5cd9ff;
-    box-shadow: 0 0 15px rgba(92, 217, 255, 0.45);
+    border: 2px solid #c084fc;
+    box-shadow: 0 0 15px rgba(192, 132, 252, 0.45);
 }
 
 .day-number {
     color: #ffffff;
-    font-weight: 700;
+    font-weight: 400;
     margin-bottom: 5px;
 }
 
 .calendar-day.today .day-number {
-    color: #5cd9ff;
-    text-shadow: 0 0 10px rgba(92, 217, 255, 0.8);
+    color: #c084fc;
+    text-shadow: 0 0 10px rgba(192, 132, 252, 0.8);
 }
 
 .day-events {
@@ -549,8 +579,8 @@ h1 {
 }
 
 .mini-event {
-    background: rgba(92, 217, 255, 0.15);
-    border-left: 3px solid #5cd9ff;
+    background: rgba(192, 132, 252, 0.15);
+    border-left: 3px solid #c084fc;
     padding: 3px 5px;
     border-radius: 3px;
     font-size: 0.7em;
@@ -565,10 +595,10 @@ h1 {
 .mini-event.importance-quite { border-left-color: #10b981; background: rgba(16,  185, 129, 0.2); }
 
 .add-event-section {
-    background: #0f1724;
+    background: linear-gradient(135deg, rgba(59, 7, 100, 0.18) 0%, transparent 70%);
     padding: 25px;
-    border-radius: 15px;
-    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 8px;
+    border: 1px solid rgba(192, 132, 252, 0.2);
     margin-bottom: 30px;
 }
 
@@ -591,15 +621,15 @@ h1 {
 
 .add-event-section textarea:focus {
     outline: none;
-    border-color: #5cd9ff;
-    box-shadow: 0 0 10px rgba(92, 217, 255, 0.3);
+    border-color: #c084fc;
+    box-shadow: 0 0 10px rgba(192, 132, 252, 0.3);
 }
 
 .events-list-section {
-    background: #0f1724;
+    background: linear-gradient(135deg, rgba(59, 7, 100, 0.18) 0%, transparent 70%);
     padding: 25px;
-    border-radius: 15px;
-    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 8px;
+    border: 1px solid rgba(192, 132, 252, 0.2);
 }
 
 .events-list-section h3 {
@@ -607,8 +637,10 @@ h1 {
 }
 
 .calendar-event-item {
-    background: #121b2e;
-    border-left: 4px solid #5cd9ff;
+    background: rgba(255, 255, 255, 0.03);
+
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-left: 4px solid #c084fc;
     padding: 15px;
     border-radius: 8px;
     margin-bottom: 15px;
@@ -626,9 +658,9 @@ h1 {
 }
 
 .event-title {
-    color: #5cd9ff;
+    color: #c084fc;
     font-size: 1.1em;
-    font-weight: 700;
+    font-weight: 400;
 }
 
 .event-time {
@@ -648,10 +680,10 @@ h1 {
     padding: 4px 10px;
     border-radius: 5px;
     font-size: 0.85em;
-    font-weight: 600;
+    font-weight: 400;
 }
 
-.event-badge.category  { background: rgba(92,  217, 255, 0.15); color: #5cd9ff; }
+.event-badge.category  { background: rgba(92,  217, 255, 0.15); color: #c084fc; }
 .event-badge.importance{ background: rgba(245, 158, 11,  0.15); color: #f59e0b; }
 
 .event-description {
@@ -675,14 +707,14 @@ h1 {
     cursor: pointer;
     font-size: 0.85em;
     font-family: 'Inter', sans-serif;
-    font-weight: 600;
+    font-weight: 400;
     transition: all 0.3s;
 }
 
-.btn-edit-event          { background: #3b82f6; color: white; }
-.btn-edit-event:hover    { background: #2563eb; transform: translateY(-2px); }
-.btn-delete-event        { background: #dc2626; color: white; }
-.btn-delete-event:hover  { background: #991b1b; transform: translateY(-2px); }
+.btn-edit-event          { background: #c084fc; color: white; }
+.btn-edit-event:hover    { background: #a855f7; transform: translateY(-2px); }
+.btn-delete-event        { background: transparent; color: #ff6b6b; border: 1px solid rgba(255, 107, 107, 0.6); }
+.btn-delete-event:hover  { background: rgba(255, 107, 107, 0.12); transform: translateY(-2px); }
 
 /* ── Tasks / Goals ─────────────────────────────────────────── */
 #tasksList {
@@ -694,10 +726,10 @@ h1 {
 
 .collapsible-section {
     margin-bottom: 20px;
-    border: 1px solid rgba(255, 255, 255, 0.06);
-    border-radius: 10px;
+    border: 1px solid rgba(192, 132, 252, 0.2);
+    border-radius: 8px;
     overflow: hidden;
-    background: #0f1724;
+    background: linear-gradient(135deg, rgba(59, 7, 100, 0.18) 0%, transparent 70%);
 }
 
 .section-header {
@@ -705,9 +737,9 @@ h1 {
     align-items: center;
     gap: 10px;
     padding: 15px 20px;
-    background: #121b2e;
+    background: transparent;
     cursor: pointer;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    border-bottom: 1px solid rgba(192, 132, 252, 0.15);
 }
 
 .section-header h3 {
@@ -718,7 +750,7 @@ h1 {
 .collapse-btn {
     background: none;
     border: none;
-    color: #5cd9ff;
+    color: #c084fc;
     font-size: 1.2em;
     cursor: pointer;
     transition: transform 0.3s;
@@ -728,10 +760,11 @@ h1 {
     display: flex;
     align-items: center;
     justify-content: center;
+    transform: rotate(90deg); /* ⟩ pointing down = section open */
 }
 
 .collapse-btn.collapsed {
-    transform: rotate(-90deg);
+    transform: rotate(0deg); /* ⟩ pointing right = section closed */
 }
 
 .section-content {
@@ -767,18 +800,19 @@ h1 {
 
 .task-input:focus {
     outline: none;
-    border-color: #5cd9ff;
-    box-shadow: 0 0 10px rgba(92, 217, 255, 0.3);
+    border-color: #c084fc;
+    box-shadow: 0 0 10px rgba(192, 132, 252, 0.3);
 }
 
 .task-item {
-    background: #0f1724;
+    background: rgba(255, 255, 255, 0.03);
+
     padding: 15px;
     border-radius: 10px;
     display: flex;
     align-items: center;
     gap: 15px;
-    border: 1px solid rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .task-item.completed { opacity: 0.6; }
@@ -787,7 +821,7 @@ h1 {
     width: 20px;
     height: 20px;
     cursor: pointer;
-    accent-color: #3b82f6;
+    accent-color: #c084fc;
 }
 
 .task-item-text { flex: 1; color: #ffffff; }
@@ -800,19 +834,19 @@ h1 {
 .task-item-date { color: #8b92b0; font-size: 0.9em; }
 
 .task-item-delete {
-    background: #ff4757;
-    color: white;
-    border: none;
+    background: transparent;
+    color: #ff6b6b;
+    border: 1px solid rgba(255, 107, 107, 0.6);
     padding: 8px 15px;
     border-radius: 5px;
     cursor: pointer;
     font-family: 'Inter', sans-serif;
-    font-weight: 600;
+    font-weight: 400;
     transition: all 0.3s;
 }
 
 .task-item-delete:hover {
-    background: #cc1a2a;
+    background: rgba(255, 107, 107, 0.12);
     transform: translateY(-2px);
 }
 
@@ -830,24 +864,45 @@ h1 {
     text-align: center;
 }
 
-.finance-card.income  { background: linear-gradient(135deg, #065f46 0%, #10b981 100%); color: white; box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3); }
-.finance-card.expense { background: linear-gradient(135deg, #991b1b 0%, #dc2626 100%); color: white; box-shadow: 0 4px 15px rgba(220, 38,  38,  0.3); }
-.finance-card.balance { background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%); color: white; box-shadow: 0 4px 15px rgba(61,  130, 246, 0.3); }
+.finance-card.income  {
+    background: linear-gradient(135deg, rgba(6, 78, 59, 0.3) 0%, transparent 70%);
+    border: 1px solid rgba(16, 185, 129, 0.3);
+}
+.finance-card.expense {
+    background: linear-gradient(135deg, rgba(127, 29, 29, 0.3) 0%, transparent 70%);
+    border: 1px solid rgba(220, 38, 38, 0.3);
+}
+.finance-card.balance {
+    background: transparent;
+    border: 1px solid rgba(192, 132, 252, 0.3);
+}
 
 .finance-card h3 {
     font-size: 1em;
-    font-weight: 800;
+    font-weight: 400;
     margin-bottom: 10px;
     text-shadow: none;
-    color: white;
+    color: #c084fc;
 }
 
 .finance-card .amount {
     font-size: 2em;
-    font-weight: 800;
+    font-weight: 400;
+    color: #e5e7eb;
 }
+.finance-card.income  .amount { color: #10b981; }
+.finance-card.income  h3      { color: #10b981; }
+.finance-card.expense .amount { color: #dc2626; }
+.finance-card.expense h3      { color: #dc2626; }
+.finance-card.balance .amount { color: #c084fc; }
 
-.finance-list { margin-top: 30px; }
+.finance-list {
+    margin-top: 30px;
+    padding: 25px;
+    border: 1px solid rgba(192, 132, 252, 0.2);
+    border-radius: 8px;
+    background: linear-gradient(135deg, rgba(59, 7, 100, 0.18) 0%, transparent 70%);
+}
 
 #financeList {
     display: flex;
@@ -857,13 +912,14 @@ h1 {
 }
 
 .finance-item {
-    background: #0f1724;
+    background: rgba(255, 255, 255, 0.03);
+
     padding: 15px;
     border-radius: 10px;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    border: 1px solid rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .finance-item.income  { border-left: 4px solid #10b981; }
@@ -872,8 +928,8 @@ h1 {
 .finance-item-info { flex: 1; }
 
 .finance-item-category {
-    font-weight: 700;
-    color: #5cd9ff;
+    font-weight: 400;
+    color: #c084fc;
 }
 
 .finance-item-description { color: #8b92b0; font-size: 0.9em; }
@@ -881,8 +937,392 @@ h1 {
 
 .finance-item-amount {
     font-size: 1.3em;
-    font-weight: 700;
+    font-weight: 400;
 }
 
 .finance-item-amount.income  { color: #10b981; }
 .finance-item-amount.expense { color: #dc2626; }
+
+/* ── Theme toggle button ────────────────────────────────────── */
+.theme-toggle {
+    background: transparent;
+    border: 1px solid rgba(192, 132, 252, 0.4);
+    color: #c084fc;
+    border-radius: 6px;
+    padding: 5px 11px;
+    cursor: pointer;
+    font-size: 15px;
+    font-family: 'Inter', sans-serif;
+    transition: all 0.2s;
+    line-height: 1;
+}
+.theme-toggle:hover {
+    background: rgba(192, 132, 252, 0.1);
+    box-shadow: 0 0 8px rgba(192, 132, 252, 0.25);
+}
+
+/* ── Light mode overrides ───────────────────────────────────── */
+html.light-mode body {
+    background: #f0f4ff;
+    color: #1f2937;
+    transition: background 0.3s, color 0.3s;
+}
+
+/* Light-mode star field: faint dark dots on light background */
+html.light-mode body::before {
+    opacity: 1;
+    background-image:
+        radial-gradient(rgba(30, 30, 80, 0.12) 1px, transparent 0),
+        radial-gradient(rgba(30, 30, 80, 0.07) 1px, transparent 0),
+        radial-gradient(rgba(30, 30, 80, 0.10) 1px, transparent 0),
+        radial-gradient(rgba(30, 30, 80, 0.05) 1px, transparent 0),
+        radial-gradient(rgba(30, 30, 80, 0.08) 1px, transparent 0),
+        radial-gradient(rgba(30, 30, 80, 0.06) 1px, transparent 0),
+        radial-gradient(rgba(30, 30, 80, 0.07) 1px, transparent 0),
+        radial-gradient(rgba(30, 30, 80, 0.04) 1px, transparent 0);
+}
+
+/* Light-mode atmospheric glow: warm top-left, cool bottom-right, very faint */
+html.light-mode body::after {
+    opacity: 1;
+    background:
+        radial-gradient(ellipse 75% 55% at -5% -5%,  rgba(220, 80, 50, 0.07) 0%, transparent 65%),
+        radial-gradient(ellipse 75% 55% at 105% 108%, rgba(0, 100, 220, 0.07) 0%, transparent 65%);
+}
+
+/* Container text */
+html.light-mode .container {
+    color: #1f2937;
+}
+
+/* Headings */
+html.light-mode h2,
+html.light-mode h3 {
+    color: #7c3aed;
+    text-shadow: none;
+}
+
+html.light-mode p {
+    color: #4b5563;
+}
+
+/* Tabs */
+html.light-mode .tabs {
+    border-bottom-color: rgba(124, 58, 237, 0.2);
+}
+html.light-mode .tab-btn {
+    color: #6b7280;
+}
+html.light-mode .tab-btn:hover,
+html.light-mode .tab-btn.active {
+    color: #7c3aed;
+}
+html.light-mode .tab-btn.active {
+    border-bottom-color: #7c3aed;
+    text-shadow: none;
+}
+
+/* Date input */
+html.light-mode .date-selector input {
+    background: #ffffff;
+    color: #7c3aed;
+    border-color: rgba(124, 58, 237, 0.25);
+}
+
+/* Form inputs, selects, textareas, task inputs */
+html.light-mode .form-group input,
+html.light-mode .form-group select,
+html.light-mode .form-row input,
+html.light-mode .add-event-section textarea,
+html.light-mode .task-input {
+    background: #ffffff;
+    color: #1f2937;
+    border-color: rgba(0, 0, 0, 0.12);
+}
+html.light-mode .form-group input::placeholder,
+html.light-mode .form-row input::placeholder,
+html.light-mode .task-input::placeholder {
+    color: #9ca3af;
+}
+html.light-mode select option {
+    background: #ffffff;
+    color: #1f2937;
+}
+
+/* Section boxes with gradient */
+html.light-mode .add-win-section,
+html.light-mode .add-finance-section,
+html.light-mode .wins-list,
+html.light-mode .week-chart,
+html.light-mode .activity-management,
+html.light-mode .calendar-nav,
+html.light-mode .calendar-grid,
+html.light-mode .add-event-section,
+html.light-mode .events-list-section,
+html.light-mode .collapsible-section,
+html.light-mode .finance-list,
+html.light-mode .add-activity-form,
+html.light-mode .activities-list {
+    background: linear-gradient(135deg, rgba(192, 132, 252, 0.08) 0%, transparent 70%);
+    border-color: rgba(124, 58, 237, 0.18);
+}
+
+/* Summary cards */
+html.light-mode .summary-card,
+html.light-mode .summary-card.total {
+    background: linear-gradient(135deg, rgba(192, 132, 252, 0.1) 0%, transparent 70%);
+    border-color: rgba(124, 58, 237, 0.2);
+    box-shadow: 0 0 12px rgba(124, 58, 237, 0.08);
+}
+
+/* Finance cards */
+html.light-mode .finance-card.income {
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, transparent 70%);
+    border-color: rgba(16, 185, 129, 0.3);
+}
+html.light-mode .finance-card.expense {
+    background: linear-gradient(135deg, rgba(220, 38, 38, 0.08) 0%, transparent 70%);
+    border-color: rgba(220, 38, 38, 0.25);
+}
+html.light-mode .finance-card.balance {
+    background: transparent;
+    border-color: rgba(124, 58, 237, 0.25);
+}
+
+/* List items */
+html.light-mode .win-item,
+html.light-mode .task-item,
+html.light-mode .activity-item,
+html.light-mode .calendar-event-item,
+html.light-mode .finance-item {
+    background: rgba(255, 255, 255, 0.7);
+    border-color: rgba(0, 0, 0, 0.08);
+}
+html.light-mode .calendar-event-item {
+    border-left-color: #7c3aed;
+}
+
+/* Calendar days */
+html.light-mode .calendar-header {
+    background: rgba(124, 58, 237, 0.06);
+    border-color: rgba(0, 0, 0, 0.07);
+    color: #7c3aed;
+}
+html.light-mode .calendar-day {
+    background: rgba(255, 255, 255, 0.65);
+    border-color: rgba(0, 0, 0, 0.07);
+}
+html.light-mode .calendar-day:hover {
+    background: rgba(192, 132, 252, 0.12);
+    border-color: rgba(124, 58, 237, 0.3);
+    box-shadow: 0 0 8px rgba(124, 58, 237, 0.1);
+}
+html.light-mode .calendar-day.today {
+    background: linear-gradient(135deg, #c084fc 0%, #7c3aed 100%);
+    border-color: #7c3aed;
+    box-shadow: 0 0 12px rgba(124, 58, 237, 0.3);
+}
+html.light-mode .calendar-day.today .day-number {
+    color: #ffffff;
+    text-shadow: none;
+}
+html.light-mode .day-number { color: #1f2937; }
+
+/* Calendar nav buttons */
+html.light-mode .btn-calendar-nav {
+    background: #e9ecf3;
+    border-color: rgba(0, 0, 0, 0.1);
+    color: #7c3aed;
+}
+html.light-mode .btn-calendar-nav:hover {
+    background: #ddd6fe;
+    border-color: #7c3aed;
+    box-shadow: none;
+}
+
+/* Section header divider */
+html.light-mode .section-header {
+    border-bottom-color: rgba(124, 58, 237, 0.12);
+}
+
+/* Text colors in lists */
+html.light-mode .win-item-category,
+html.light-mode .win-item-points,
+html.light-mode .activity-item-points,
+html.light-mode .finance-item-category,
+html.light-mode .event-title,
+html.light-mode .summary-card h3,
+html.light-mode .summary-card .points,
+html.light-mode .finance-card h3,
+html.light-mode .collapse-btn {
+    color: #7c3aed;
+    text-shadow: none;
+}
+html.light-mode .finance-card.income h3  { color: #10b981; }
+html.light-mode .finance-card.expense h3 { color: #dc2626; }
+html.light-mode .finance-card.income  .amount { color: #10b981; }
+html.light-mode .finance-card.expense .amount { color: #dc2626; }
+html.light-mode .finance-card.balance .amount { color: #7c3aed; }
+
+html.light-mode .activity-item-name,
+html.light-mode .task-item-text { color: #1f2937; }
+
+html.light-mode .win-item-description,
+html.light-mode .task-item-date,
+html.light-mode .event-time,
+html.light-mode .event-description,
+html.light-mode .finance-item-description,
+html.light-mode .form-group label,
+html.light-mode .summary-card .goal { color: #6b7280; }
+
+html.light-mode .finance-item-date { color: #9ca3af; }
+
+/* Tab headings separator */
+html.light-mode .tab-content > h2 {
+    border-bottom-color: rgba(124, 58, 237, 0.18);
+}
+html.light-mode .add-win-section h2,
+html.light-mode .wins-list h2,
+html.light-mode .week-chart h2,
+html.light-mode .activity-management h2,
+html.light-mode .add-event-section h3,
+html.light-mode .events-list-section h3,
+html.light-mode .finance-list h3 {
+    border-bottom-color: rgba(124, 58, 237, 0.14);
+}
+
+/* Mini calendar events */
+html.light-mode .mini-event {
+    background: rgba(192, 132, 252, 0.15);
+    color: #1f2937;
+}
+
+/* Theme toggle in light mode */
+html.light-mode .theme-toggle {
+    color: #7c3aed;
+    border-color: rgba(124, 58, 237, 0.4);
+}
+html.light-mode .theme-toggle:hover {
+    background: rgba(124, 58, 237, 0.08);
+    box-shadow: none;
+}
+
+/* ── Dashboard two-column layout ───────────────────────────── */
+.dashboard-main-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 30px;
+    margin-bottom: 30px;
+}
+
+.dashboard-left {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.dashboard-left .add-win-section,
+.dashboard-left .wins-list {
+    margin-bottom: 0;
+}
+
+.dashboard-right {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+    padding: 25px;
+    border: 1px solid rgba(192, 132, 252, 0.2);
+    border-radius: 8px;
+    background: linear-gradient(135deg, rgba(59, 7, 100, 0.18) 0%, transparent 70%);
+}
+
+.dashboard-right h2 {
+    width: 100%;
+    text-align: center;
+    padding-bottom: 14px;
+    border-bottom: 1px solid rgba(192, 132, 252, 0.18);
+    margin-bottom: 0;
+}
+
+/* ── Radar / Pillars chart ─────────────────────────────────── */
+.pillar-chart-container {
+    position: relative;
+    width: 100%;
+    max-width: 360px;
+}
+
+.pillar-logo-center {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 38px;
+    height: 38px;
+    object-fit: contain;
+    opacity: 0.7;
+    pointer-events: none;
+}
+
+#overallGrowth {
+    text-align: center;
+    color: #c084fc;
+    font-size: 0.95em;
+    letter-spacing: 0.3px;
+}
+
+html.light-mode #overallGrowth { color: #7c3aed; }
+
+/* ── Calendar logo badge ───────────────────────────────────── */
+.day-logo-badge {
+    width: 22px;
+    height: 22px;
+    object-fit: contain;
+    display: block;
+    margin: 4px auto 0;
+    opacity: 0.85;
+}
+
+/* ── "Other" custom text inputs ────────────────────────────── */
+.other-input {
+    display: none;
+    margin-top: 6px;
+    width: 100%;
+    padding: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 8px;
+    font-size: 1em;
+    background: #080d14;
+    color: #ffffff;
+    font-family: 'Inter', sans-serif;
+    font-weight: 400;
+}
+
+.other-input.visible {
+    display: block;
+}
+
+.other-input:focus {
+    outline: none;
+    border-color: #c084fc;
+    box-shadow: 0 0 10px rgba(192, 132, 252, 0.3);
+}
+
+html.light-mode .other-input {
+    background: #ffffff;
+    color: #1f2937;
+    border-color: rgba(0, 0, 0, 0.12);
+}
+
+/* ── Responsive: stack dashboard columns on small screens ──── */
+@media (max-width: 900px) {
+    .dashboard-main-row {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* ── Light mode: dashboard right panel ─────────────────────── */
+html.light-mode .dashboard-right {
+    background: linear-gradient(135deg, rgba(192, 132, 252, 0.08) 0%, transparent 70%);
+    border-color: rgba(124, 58, 237, 0.18);
+}

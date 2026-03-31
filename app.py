@@ -154,10 +154,10 @@ def daily_summary():
     
     summary = {
         'physical': 0,
-        'mental': 0,
+        'work': 0,
         'health': 0,
-        'social': 0,
-        'mood': 0,
+        'relationships': 0,
+        'mindset': 0,
         'total': 0
     }
     
@@ -461,6 +461,27 @@ def calendar_events_api():
             })
         
         return jsonify(events_list)
+
+@app.route('/api/month-data')
+def month_data():
+    year = request.args.get('year')
+    month = request.args.get('month')
+    if not year or not month:
+        return jsonify({})
+
+    conn = sqlite3.connect(DB_PATH)
+    c = conn.cursor()
+    c.execute(
+        '''SELECT date, SUM(points) FROM wins
+           WHERE strftime('%Y-%m', date) = ?
+           GROUP BY date''',
+        (f"{year}-{month.zfill(2)}",)
+    )
+    rows = c.fetchall()
+    conn.close()
+
+    return jsonify({row[0]: row[1] for row in rows})
+
 
 if __name__ == '__main__':
     app.run(debug=True, port=5001)
