@@ -443,12 +443,12 @@ function loadPillarsChart(summary) {
         id: 'pillarsLogo',
         afterDraw(chart) {
             if (!pillarsLogoImg.complete) return;
-            const { ctx: c, chartArea } = chart;
-            const cx = (chartArea.left + chartArea.right) / 2;
-            const cy = (chartArea.top + chartArea.bottom) / 2;
+            const { ctx: c } = chart;
+            const cx = chart.scales.r.xCenter;
+            const cy = chart.scales.r.yCenter;
             const size = 38;
             c.save();
-            c.globalAlpha = 0.75;
+            c.globalAlpha = 0.85;
             c.drawImage(pillarsLogoImg, cx - size / 2, cy - size / 2, size, size);
             c.restore();
         }
@@ -467,7 +467,7 @@ function loadPillarsChart(summary) {
     pillarsChartInstance = new Chart(ctx, {
         type: 'radar',
         data: {
-            labels: ['Physical', 'Work', 'Health', 'Relationships', 'Mindset & Discipline'],
+            labels: ['Physical', 'Work', 'Health', 'Relationships', ['Mindset', '& Discipline']],
             datasets: [{
                 data,
                 backgroundColor: 'rgba(192, 132, 252, 0.15)',
