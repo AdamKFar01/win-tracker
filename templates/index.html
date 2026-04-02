@@ -12,6 +12,7 @@
     <div class="container">
         <header>
             <h1>WinnersTrack</h1>
+            <div id="xp-display"></div>
             <div style="display:flex;align-items:center;gap:12px;">
                 <button id="themeToggle" class="theme-toggle" title="Toggle light/dark mode">☀</button>
                 <div class="date-selector">
@@ -23,7 +24,6 @@
         <nav class="tabs">
             <button class="tab-btn active" data-tab="dashboard">Dashboard</button>
             <button class="tab-btn" data-tab="calendar">Calendar</button>
-            <button class="tab-btn" data-tab="tasks">Tasks</button>
             <button class="tab-btn" data-tab="goals">Goals</button>
             <button class="tab-btn" data-tab="reminders">Reminders</button>
             <button class="tab-btn" data-tab="finance">Finance</button>
@@ -197,6 +197,15 @@
                     </div>
                 </div>
             </div>
+
+            <!-- XP Log Section -->
+            <div class="collapsible-section xp-log-section">
+                <div class="section-header">
+                    <button class="collapse-btn collapsed" onclick="toggleSection('xp-log-list')">⟩</button>
+                    <h3>XP History</h3>
+                </div>
+                <div class="section-content collapsed" id="xp-log-list"></div>
+            </div>
         </div>
 
         <!-- Calendar Tab -->
@@ -287,73 +296,6 @@
             <div class="events-list-section">
                 <h3>Events on <span id="selectedDate">Today</span></h3>
                 <div id="dayEventsList"></div>
-            </div>
-        </div>
-
-        <!-- Tasks Tab -->
-        <div class="tab-content" id="tasks">
-            <h2>Tasks & Todo Lists</h2>
-            
-            <!-- Today's Tasks -->
-            <div class="collapsible-section">
-                <div class="section-header">
-                    <button class="collapse-btn" onclick="toggleSection('today-tasks')">⟩</button>
-                    <h3>Today's Tasks</h3>
-                </div>
-                <div class="section-content" id="today-tasks">
-                    <div class="add-task-section">
-                        <form id="todayTaskForm">
-                            <input type="text" class="task-input" placeholder="Add a task for today..." required>
-                            <button type="submit" class="btn-primary">Add</button>
-                        </form>
-                    </div>
-                    <div id="todayTasksList"></div>
-                </div>
-            </div>
-
-            <!-- Weekly Tasks -->
-            <div class="collapsible-section">
-                <div class="section-header">
-                    <button class="collapse-btn" onclick="toggleSection('weekly-tasks')">⟩</button>
-                    <h3>Weekly Tasks</h3>
-                </div>
-                <div class="section-content" id="weekly-tasks">
-                    <div class="add-task-section">
-                        <form id="weeklyTaskForm">
-                            <input type="text" class="task-input" placeholder="Add a weekly task..." required>
-                            <button type="submit" class="btn-primary">Add</button>
-                        </form>
-                    </div>
-                    <div id="weeklyTasksList"></div>
-                </div>
-            </div>
-
-            <!-- Monthly Tasks -->
-            <div class="collapsible-section">
-                <div class="section-header">
-                    <button class="collapse-btn" onclick="toggleSection('monthly-tasks')">⟩</button>
-                    <h3>Monthly Tasks</h3>
-                </div>
-                <div class="section-content" id="monthly-tasks">
-                    <div class="add-task-section">
-                        <form id="monthlyTaskForm">
-                            <input type="text" class="task-input" placeholder="Add a monthly task..." required>
-                            <button type="submit" class="btn-primary">Add</button>
-                        </form>
-                    </div>
-                    <div id="monthlyTasksList"></div>
-                </div>
-            </div>
-
-            <!-- Old/Expired Tasks -->
-            <div class="collapsible-section">
-                <div class="section-header">
-                    <button class="collapse-btn" onclick="toggleSection('old-tasks')">⟩</button>
-                    <h3>Old Tasks</h3>
-                </div>
-                <div class="section-content collapsed" id="old-tasks">
-                    <div id="oldTasksList"></div>
-                </div>
             </div>
         </div>
 

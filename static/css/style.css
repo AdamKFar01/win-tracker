@@ -2010,3 +2010,68 @@ html.light-mode .health-target-value { color: #1f2937; }
     .health-food-columns { grid-template-columns: 1fr; }
     .health-form-grid    { grid-template-columns: 1fr 1fr; }
 }
+
+/* ── XP Display ─────────────────────────────────────────────── */
+@keyframes xp-sweep {
+    0%   { background-position: 0% 50%; }
+    50%  { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+#xp-display {
+    font-family: 'Inter', sans-serif;
+    font-weight: 700;
+    font-size: 0.95rem;
+    letter-spacing: 0.02em;
+    background: linear-gradient(90deg, #c084fc, #00c9a7, #c084fc);
+    background-size: 200% 200%;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: xp-sweep 3s ease infinite;
+    white-space: nowrap;
+    padding: 0 4px;
+}
+
+/* ── XP Log ─────────────────────────────────────────────────── */
+.xp-log-section {
+    margin-top: 20px;
+}
+
+.xp-entry {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 14px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    font-size: 0.88rem;
+}
+
+.xp-entry:last-child {
+    border-bottom: none;
+}
+
+.xp-entry-date {
+    color: #8b92b0;
+    min-width: 90px;
+    flex-shrink: 0;
+}
+
+.xp-entry-reason {
+    flex: 1;
+    color: #d1d5db;
+}
+
+.xp-entry-change {
+    font-weight: 700;
+    min-width: 80px;
+    text-align: right;
+    flex-shrink: 0;
+}
+
+.xp-positive { color: #00c9a7; }
+.xp-negative { color: #f87171; }
+
+html.light-mode .xp-entry { border-bottom-color: rgba(0,0,0,0.06); }
+html.light-mode .xp-entry-date   { color: #6b7280; }
+html.light-mode .xp-entry-reason { color: #374151; }

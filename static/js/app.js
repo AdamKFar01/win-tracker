@@ -395,6 +395,9 @@ document.getElementById('winForm').addEventListener('submit', async (e) => {
             document.getElementById('winForm').reset();
             loadDailySummary();
             loadWins();
+            loadXP();
+            loadXPLog();
+            checkCompleteDay();
         }
     } catch (error) {
         console.error('Error adding win:', error);
@@ -695,29 +698,8 @@ function toggleSection(sectionId) {
 const taskPeriods = ['today', 'weekly', 'monthly'];
 const goalPeriods = ['weekly', 'monthly', 'yearly', 'lifelong'];
 
-// Setup all task forms
+// Setup all task forms (goal types only — Tasks tab removed)
 function setupTaskForms() {
-    // Today's tasks
-    document.getElementById('todayTaskForm').addEventListener('submit', async (e) => {
-        e.preventDefault();
-        await addTask(e.target.querySelector('.task-input').value, 'task', 'today');
-        e.target.reset();
-    });
-
-    // Weekly tasks
-    document.getElementById('weeklyTaskForm').addEventListener('submit', async (e) => {
-        e.preventDefault();
-        await addTask(e.target.querySelector('.task-input').value, 'task', 'weekly');
-        e.target.reset();
-    });
-
-    // Monthly tasks
-    document.getElementById('monthlyTaskForm').addEventListener('submit', async (e) => {
-        e.preventDefault();
-        await addTask(e.target.querySelector('.task-input').value, 'task', 'monthly');
-        e.target.reset();
-    });
-
     // Weekly goals
     document.getElementById('weeklyGoalForm').addEventListener('submit', async (e) => {
         e.preventDefault();
@@ -764,12 +746,6 @@ async function addTask(task, taskType, period) {
 }
 
 async function loadAllTasks() {
-    // Load all task periods
-    await loadTasksByPeriod('today', 'todayTasksList', 'task');
-    await loadTasksByPeriod('weekly', 'weeklyTasksList', 'task');
-    await loadTasksByPeriod('monthly', 'monthlyTasksList', 'task');
-    await loadTasksByPeriod('old', 'oldTasksList', 'task');
-    
     // Load all goal periods
     await loadTasksByPeriod('weekly', 'weeklyGoalsList', 'goal');
     await loadTasksByPeriod('monthly', 'monthlyGoalsList', 'goal');
@@ -857,6 +833,8 @@ document.getElementById('financeForm').addEventListener('submit', async (e) => {
             document.getElementById('financeForm').reset();
             document.getElementById('financeDate').value = getLocalDateString();
             loadFinance();
+            loadXP();
+            loadXPLog();
         }
     } catch (error) {
         console.error('Error adding finance:', error);
@@ -1464,6 +1442,9 @@ async function saveDailyGoals() {
                 goal_3_complete: dailyGoalComplete[2] ? 1 : 0
             })
         });
+        loadXP();
+        loadXPLog();
+        checkCompleteDay();
     } catch (error) {
         console.error('Error saving daily goals:', error);
     }
@@ -1812,6 +1793,54 @@ document.getElementById('healthDate').addEventListener('change', (e) => {
     loadWater(dateStr);
 });
 
+// ── XP System ──────────────────────────────────────────────────
+
+async function loadXP() {
+    try {
+        const res = await fetch('/api/xp');
+        const data = await res.json();
+        const el = document.getElementById('xp-display');
+        let text = `Lv.${data.level} · ${data.total_xp.toLocaleString()} XP`;
+        if (data.multiplier > 1) text += ` ×${data.multiplier.toFixed(2)}`;
+        el.textContent = text;
+    } catch (e) {
+        console.error('Error loading XP:', e);
+    }
+}
+
+async function loadXPLog() {
+    try {
+        const res = await fetch('/api/xp/log');
+        const entries = await res.json();
+        const list = document.getElementById('xp-log-list');
+        if (entries.length === 0) {
+            list.innerHTML = '<p style="color:#8b92b0;text-align:center;padding:20px;">No XP events yet.</p>';
+            return;
+        }
+        list.innerHTML = entries.map(e => {
+            const sign = e.change >= 0 ? '+' : '';
+            const cls = e.change >= 0 ? 'xp-positive' : 'xp-negative';
+            return `<div class="xp-entry">
+                <span class="xp-entry-date">${e.date}</span>
+                <span class="xp-entry-reason">${e.reason}</span>
+                <span class="xp-entry-change ${cls}">${sign}${e.change} XP</span>
+            </div>`;
+        }).join('');
+    } catch (e) {
+        console.error('Error loading XP log:', e);
+    }
+}
+
+async function checkCompleteDay() {
+    try {
+        await fetch('/api/xp/complete-day', { method: 'POST' });
+        loadXP();
+        loadXPLog();
+    } catch (e) {
+        console.error('Error checking complete day:', e);
+    }
+}
+
 async function initializeApp() {
     await loadActivitiesFromDatabase();
     await loadCalendarEvents();
@@ -1833,6 +1862,11 @@ async function initializeApp() {
     loadFoodLog(getLocalDateString());
     loadActivityLog(getLocalDateString());
     loadWater(getLocalDateString());
+    // XP system
+    fetch('/api/xp/daily-check', { method: 'POST' }).then(() => {
+        loadXP();
+        loadXPLog();
+    });
 }
 
 initializeApp();

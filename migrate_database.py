@@ -247,6 +247,53 @@ if not table_exists('activity_log'):
 else:
     print("   ✅ activity_log table exists")
 
+# 10. Create xp_log table
+print("📝 Checking xp_log table...")
+if not table_exists('xp_log'):
+    try:
+        c.execute('''CREATE TABLE xp_log
+                     (id INTEGER PRIMARY KEY AUTOINCREMENT,
+                      date TEXT NOT NULL,
+                      change INTEGER NOT NULL,
+                      reason TEXT NOT NULL)''')
+        conn.commit()
+        print("   ✅ Created xp_log table")
+    except Exception as e:
+        print(f"   ⚠️  Warning: {e}")
+else:
+    print("   ✅ xp_log table exists")
+
+# 11. Create user_stats table
+print("📝 Checking user_stats table...")
+if not table_exists('user_stats'):
+    try:
+        c.execute('''CREATE TABLE user_stats
+                     (id INTEGER PRIMARY KEY,
+                      total_xp INTEGER DEFAULT 0,
+                      streak_days INTEGER DEFAULT 0,
+                      last_win_day TEXT DEFAULT '',
+                      last_penalty_date TEXT DEFAULT '',
+                      savings_threshold_crossed INTEGER DEFAULT 0)''')
+        c.execute('INSERT OR IGNORE INTO user_stats (id) VALUES (1)')
+        conn.commit()
+        print("   ✅ Created user_stats table")
+    except Exception as e:
+        print(f"   ⚠️  Warning: {e}")
+else:
+    print("   ✅ user_stats table exists")
+
+# 12. Add xp_reward column to tasks
+print("📝 Checking tasks.xp_reward column...")
+if not column_exists('tasks', 'xp_reward'):
+    try:
+        c.execute("ALTER TABLE tasks ADD COLUMN xp_reward INTEGER DEFAULT 0")
+        conn.commit()
+        print("   ✅ Added 'xp_reward' column to tasks")
+    except Exception as e:
+        print(f"   ⚠️  Warning: {e}")
+else:
+    print("   ✅ tasks.xp_reward column exists")
+
 conn.close()
 
 print()

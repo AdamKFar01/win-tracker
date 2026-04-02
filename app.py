@@ -142,11 +142,60 @@ def init_db():
                   goal_3_text TEXT DEFAULT '',
                   goal_3_complete INTEGER DEFAULT 0)''')
 
+    # XP log table
+    c.execute('''CREATE TABLE IF NOT EXISTS xp_log
+                 (id INTEGER PRIMARY KEY AUTOINCREMENT,
+                  date TEXT NOT NULL,
+                  change INTEGER NOT NULL,
+                  reason TEXT NOT NULL)''')
+
+    # User stats table (single persistent row)
+    c.execute('''CREATE TABLE IF NOT EXISTS user_stats
+                 (id INTEGER PRIMARY KEY,
+                  total_xp INTEGER DEFAULT 0,
+                  streak_days INTEGER DEFAULT 0,
+                  last_win_day TEXT DEFAULT '',
+                  last_penalty_date TEXT DEFAULT '',
+                  savings_threshold_crossed INTEGER DEFAULT 0)''')
+    c.execute('INSERT OR IGNORE INTO user_stats (id) VALUES (1)')
+
+    # xp_reward column on tasks (for goal types)
+    try:
+        c.execute("ALTER TABLE tasks ADD COLUMN xp_reward INTEGER DEFAULT 0")
+    except Exception:
+        pass  # Column already exists
+
     conn.commit()
     conn.close()
 
 # Initialize database on startup
 init_db()
+
+
+def _compute_level(total_xp):
+    """Return (level, xp_in_level, xp_for_next_level) using 5000×1.1^n curve."""
+    level = 0
+    threshold = 5000
+    remaining = total_xp
+    while remaining >= threshold:
+        remaining -= threshold
+        level += 1
+        threshold = int(threshold * 1.1)
+    return level, remaining, threshold
+
+
+def award_xp(c, change, reason):
+    """Insert into xp_log and update total_xp, applying streak multiplier on gains."""
+    today = datetime.now().strftime('%Y-%m-%d')
+    c.execute('SELECT total_xp, streak_days FROM user_stats WHERE id = 1')
+    row = c.fetchone()
+    streak_days = row[1] if row else 0
+    actual_change = int(change * 1.25) if (streak_days >= 2 and change > 0) else change
+    c.execute('INSERT INTO xp_log (date, change, reason) VALUES (?, ?, ?)',
+              (today, actual_change, reason))
+    c.execute('UPDATE user_stats SET total_xp = total_xp + ? WHERE id = 1', (actual_change,))
+    return actual_change
+
 
 @app.route('/')
 def index():
@@ -164,6 +213,7 @@ def wins():
                      VALUES (?, ?, ?, ?, ?, ?, ?)''',
                   (data['category'], data['activity'], data.get('description', ''),
                    data['points'], data.get('duration', 0), data['date'], datetime.now().isoformat()))
+        award_xp(c, data['points'], f"Win: {data['activity']}")
         conn.commit()
         conn.close()
         return jsonify({'success': True})
@@ -263,14 +313,37 @@ def daily_goals_api():
 
     if request.method == 'POST':
         data = request.json
+        # Fetch previous completion state to detect newly-completed goals
+        c.execute('SELECT goal_1_complete, goal_2_complete, goal_3_complete FROM daily_goals WHERE date = ?',
+                  (data['date'],))
+        old_row = c.fetchone()
+        old_complete = [old_row[0] if old_row else 0,
+                        old_row[1] if old_row else 0,
+                        old_row[2] if old_row else 0]
+
+        new_complete = [int(data.get('goal_1_complete', 0)),
+                        int(data.get('goal_2_complete', 0)),
+                        int(data.get('goal_3_complete', 0))]
+        new_texts = [data.get('goal_1_text', ''),
+                     data.get('goal_2_text', ''),
+                     data.get('goal_3_text', '')]
+
         c.execute('''INSERT OR REPLACE INTO daily_goals
                      (date, goal_1_text, goal_1_complete, goal_2_text, goal_2_complete,
                       goal_3_text, goal_3_complete)
                      VALUES (?, ?, ?, ?, ?, ?, ?)''',
                   (data['date'],
-                   data.get('goal_1_text', ''), int(data.get('goal_1_complete', 0)),
-                   data.get('goal_2_text', ''), int(data.get('goal_2_complete', 0)),
-                   data.get('goal_3_text', ''), int(data.get('goal_3_complete', 0))))
+                   new_texts[0], new_complete[0],
+                   new_texts[1], new_complete[1],
+                   new_texts[2], new_complete[2]))
+
+        # Award +100 XP per newly completed goal (only for today's date)
+        today = datetime.now().strftime('%Y-%m-%d')
+        if data['date'] == today:
+            for i in range(3):
+                if new_complete[i] == 1 and old_complete[i] == 0 and new_texts[i]:
+                    award_xp(c, 100, f"Goal {i+1} completed")
+
         conn.commit()
         conn.close()
         return jsonify({'success': True})
@@ -378,8 +451,28 @@ def finance():
         data = request.json
         c.execute('''INSERT INTO finance (type, amount, category, description, date)
                      VALUES (?, ?, ?, ?, ?)''',
-                  (data['type'], data['amount'], data.get('category'), 
+                  (data['type'], data['amount'], data.get('category'),
                    data.get('description'), data['date']))
+
+        # XP for income (savings) deposits
+        if data['type'] == 'income':
+            deposit_xp = int(data['amount'])
+            if deposit_xp > 0:
+                award_xp(c, deposit_xp, f"Savings deposit £{data['amount']:.2f}")
+            # Check if a new £1000 savings threshold has been crossed
+            c.execute('SELECT savings_threshold_crossed FROM user_stats WHERE id = 1')
+            stat_row = c.fetchone()
+            prev_threshold = stat_row[0] if stat_row else 0
+            c.execute("SELECT SUM(amount) FROM finance WHERE type = 'income'")
+            total_row = c.fetchone()
+            total_income = total_row[0] if total_row[0] else 0
+            new_threshold = int(total_income // 1000)
+            if new_threshold > prev_threshold:
+                for t in range(prev_threshold + 1, new_threshold + 1):
+                    award_xp(c, 1000, f"£{t * 1000} savings milestone!")
+                c.execute('UPDATE user_stats SET savings_threshold_crossed = ? WHERE id = 1',
+                          (new_threshold,))
+
         conn.commit()
         conn.close()
         return jsonify({'success': True})
@@ -740,6 +833,130 @@ def activity_log_api():
         'id': r[0], 'date': r[1], 'activity_type': r[2],
         'duration_mins': r[3], 'intensity': r[4], 'calories_burned': r[5]
     } for r in rows])
+
+
+@app.route('/api/xp', methods=['GET'])
+def xp_api():
+    conn = sqlite3.connect(DB_PATH)
+    c = conn.cursor()
+    c.execute('SELECT total_xp, streak_days FROM user_stats WHERE id = 1')
+    row = c.fetchone()
+    conn.close()
+    total_xp = row[0] if row else 0
+    streak_days = row[1] if row else 0
+    level, xp_in_level, xp_for_next = _compute_level(total_xp)
+    multiplier = 1.25 if streak_days >= 2 else 1.0
+    return jsonify({
+        'total_xp': total_xp,
+        'level': level,
+        'xp_in_level': xp_in_level,
+        'xp_for_next': xp_for_next,
+        'streak_days': streak_days,
+        'multiplier': multiplier
+    })
+
+
+@app.route('/api/xp/log', methods=['GET'])
+def xp_log_api():
+    conn = sqlite3.connect(DB_PATH)
+    c = conn.cursor()
+    c.execute('SELECT id, date, change, reason FROM xp_log ORDER BY id DESC LIMIT 20')
+    rows = c.fetchall()
+    conn.close()
+    return jsonify([{'id': r[0], 'date': r[1], 'change': r[2], 'reason': r[3]} for r in rows])
+
+
+@app.route('/api/xp/complete-day', methods=['POST'])
+def xp_complete_day():
+    """Award +200 bonus XP and update streak when today is a win day."""
+    today = datetime.now().strftime('%Y-%m-%d')
+    conn = sqlite3.connect(DB_PATH)
+    c = conn.cursor()
+
+    c.execute('SELECT last_win_day, streak_days FROM user_stats WHERE id = 1')
+    row = c.fetchone()
+    last_win_day = row[0] if row else ''
+    streak_days = row[1] if row else 0
+
+    if last_win_day == today:
+        conn.close()
+        return jsonify({'success': True, 'already_counted': True})
+
+    # Verify today actually qualifies
+    c.execute('SELECT SUM(points) FROM wins WHERE date = ?', (today,))
+    pts_row = c.fetchone()
+    today_points = pts_row[0] if pts_row[0] else 0
+
+    c.execute('''SELECT goal_1_text, goal_1_complete, goal_2_text, goal_2_complete,
+                        goal_3_text, goal_3_complete
+                 FROM daily_goals WHERE date = ?''', (today,))
+    grow = c.fetchone()
+    goals_done = bool(grow and grow[0] and grow[1] and grow[2] and grow[3] and grow[4] and grow[5])
+
+    if today_points < 1000 or not goals_done:
+        conn.close()
+        return jsonify({'success': False, 'reason': 'conditions not met'})
+
+    # Update streak
+    yesterday = (datetime.now() - timedelta(days=1)).strftime('%Y-%m-%d')
+    if last_win_day == yesterday:
+        new_streak = streak_days + 1
+    else:
+        new_streak = 1
+
+    c.execute('UPDATE user_stats SET last_win_day = ?, streak_days = ? WHERE id = 1',
+              (today, new_streak))
+    award_xp(c, 200, "Perfect day bonus (1000pts + all 3 goals)")
+    conn.commit()
+    conn.close()
+    return jsonify({'success': True, 'streak': new_streak})
+
+
+@app.route('/api/xp/daily-check', methods=['POST'])
+def xp_daily_check():
+    """Apply streak penalty if yesterday was a missed day. Call once per app load."""
+    today = datetime.now().strftime('%Y-%m-%d')
+    yesterday = (datetime.now() - timedelta(days=1)).strftime('%Y-%m-%d')
+    day_before = (datetime.now() - timedelta(days=2)).strftime('%Y-%m-%d')
+
+    conn = sqlite3.connect(DB_PATH)
+    c = conn.cursor()
+
+    c.execute('SELECT last_penalty_date, last_win_day, streak_days FROM user_stats WHERE id = 1')
+    row = c.fetchone()
+    last_penalty_date = row[0] if row else ''
+    last_win_day = row[1] if row else ''
+    streak_days = row[2] if row else 0
+
+    # Only penalise once per day, and only if user has had at least one win day
+    if last_penalty_date == today or not last_win_day:
+        conn.close()
+        return jsonify({'success': True, 'skipped': True})
+
+    def day_was_win(date):
+        c.execute('SELECT SUM(points) FROM wins WHERE date = ?', (date,))
+        p = c.fetchone()[0] or 0
+        c.execute('''SELECT goal_1_text, goal_1_complete, goal_2_text, goal_2_complete,
+                            goal_3_text, goal_3_complete
+                     FROM daily_goals WHERE date = ?''', (date,))
+        g = c.fetchone()
+        return p >= 1000 and bool(g and g[0] and g[1] and g[2] and g[3] and g[4] and g[5])
+
+    c.execute('UPDATE user_stats SET last_penalty_date = ? WHERE id = 1', (today,))
+
+    if not day_was_win(yesterday):
+        # Missed yesterday
+        if not day_was_win(day_before):
+            # Two consecutive missed days → -1000 XP
+            award_xp(c, -1000, "Missed 2 consecutive days penalty")
+        else:
+            award_xp(c, -500, "Missed yesterday penalty")
+        # Reset streak
+        c.execute('UPDATE user_stats SET streak_days = 0 WHERE id = 1')
+
+    conn.commit()
+    conn.close()
+    return jsonify({'success': True})
 
 
 if __name__ == '__main__':
