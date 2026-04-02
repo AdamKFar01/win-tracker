@@ -16,6 +16,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         loadDailySummary();
         loadWeekChart();
+        loadPillarScores();
+        loadWeightLog();
     });
 });
 
