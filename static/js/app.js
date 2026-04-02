@@ -792,12 +792,12 @@ async function loadTasksByPeriod(period, listId, taskType) {
         
         tasks.forEach(task => {
             const taskItem = document.createElement('div');
-            taskItem.className = `task-item ${task.completed ? 'completed' : ''}`;
+            taskItem.className = `task-item ${task.completed === 1 ? 'completed' : ''}`;
             
             const isOld = period === 'old';
 
             taskItem.innerHTML = `
-                <input type="checkbox" ${task.completed ? 'checked' : ''}
+                <input type="checkbox" ${task.completed === 1 ? 'checked' : ''}
                        onchange="toggleTask(${task.id}, this.checked)">
                 <div class="task-item-text">${task.task}</div>
                 ${task.due_date && !isOld ? `<div class="task-item-date">Due: ${task.due_date}</div>` : ''}
@@ -881,7 +881,9 @@ async function loadFinance() {
             }
         });
 
-        document.getElementById('balance').textContent = `£${(totalIncome - totalExpense).toFixed(2)}`;
+        const currentBalance = totalIncome - totalExpense;
+        document.getElementById('balance').textContent = `£${currentBalance.toFixed(2)}`;
+        document.getElementById('brokeMessage').style.display = currentBalance < 100000 ? 'block' : 'none';
 
         // Balance over time chart
         const sorted = [...records].sort((a, b) => a.date.localeCompare(b.date));
