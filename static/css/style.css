@@ -852,26 +852,16 @@ h1 {
 
 /* ── Finance ───────────────────────────────────────────────── */
 .finance-summary {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 20px;
-    margin-bottom: 30px;
+    margin-bottom: 24px;
 }
 
 .finance-card {
-    padding: 20px;
+    display: inline-block;
+    padding: 16px 32px;
     border-radius: 15px;
     text-align: center;
 }
 
-.finance-card.income  {
-    background: linear-gradient(135deg, rgba(6, 78, 59, 0.3) 0%, transparent 70%);
-    border: 1px solid rgba(16, 185, 129, 0.3);
-}
-.finance-card.expense {
-    background: linear-gradient(135deg, rgba(127, 29, 29, 0.3) 0%, transparent 70%);
-    border: 1px solid rgba(220, 38, 38, 0.3);
-}
 .finance-card.balance {
     background: transparent;
     border: 1px solid rgba(192, 132, 252, 0.3);
@@ -890,11 +880,37 @@ h1 {
     font-weight: 400;
     color: #e5e7eb;
 }
-.finance-card.income  .amount { color: #10b981; }
-.finance-card.income  h3      { color: #10b981; }
-.finance-card.expense .amount { color: #dc2626; }
-.finance-card.expense h3      { color: #dc2626; }
 .finance-card.balance .amount { color: #c084fc; }
+
+.finance-columns {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    align-items: start;
+    margin-bottom: 30px;
+}
+
+.finance-col-chart {
+    background: linear-gradient(135deg, rgba(59, 7, 100, 0.3) 0%, transparent 70%);
+    border: 1px solid rgba(192, 132, 252, 0.2);
+    border-radius: 8px;
+    padding: 25px;
+}
+
+.finance-col-chart h3 {
+    font-size: 1em;
+    font-weight: 400;
+    color: #c084fc;
+    margin-bottom: 16px;
+    text-shadow: none;
+    padding-bottom: 14px;
+    border-bottom: 1px solid rgba(192, 132, 252, 0.15);
+}
+
+#balanceChart {
+    width: 100% !important;
+    max-height: 260px;
+}
 
 .finance-list {
     margin-top: 30px;
@@ -1076,17 +1092,14 @@ html.light-mode .summary-card.total {
 }
 
 /* Finance cards */
-html.light-mode .finance-card.income {
-    background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, transparent 70%);
-    border-color: rgba(16, 185, 129, 0.3);
-}
-html.light-mode .finance-card.expense {
-    background: linear-gradient(135deg, rgba(220, 38, 38, 0.08) 0%, transparent 70%);
-    border-color: rgba(220, 38, 38, 0.25);
-}
 html.light-mode .finance-card.balance {
     background: transparent;
     border-color: rgba(124, 58, 237, 0.25);
+}
+
+html.light-mode .finance-col-chart {
+    background: linear-gradient(135deg, rgba(192, 132, 252, 0.08) 0%, transparent 70%);
+    border-color: rgba(124, 58, 237, 0.18);
 }
 
 /* List items */
@@ -1158,11 +1171,8 @@ html.light-mode .collapse-btn {
     color: #7c3aed;
     text-shadow: none;
 }
-html.light-mode .finance-card.income h3  { color: #10b981; }
-html.light-mode .finance-card.expense h3 { color: #dc2626; }
-html.light-mode .finance-card.income  .amount { color: #10b981; }
-html.light-mode .finance-card.expense .amount { color: #dc2626; }
 html.light-mode .finance-card.balance .amount { color: #7c3aed; }
+html.light-mode .finance-col-chart h3 { color: #7c3aed; border-bottom-color: rgba(124, 58, 237, 0.14); }
 
 html.light-mode .activity-item-name,
 html.light-mode .task-item-text { color: #1f2937; }

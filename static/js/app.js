@@ -861,14 +861,16 @@ document.getElementById('financeForm').addEventListener('submit', async (e) => {
     }
 });
 
+let balanceChartInstance = null;
+
 async function loadFinance() {
     try {
         const response = await fetch('/api/finance');
         const records = await response.json();
-        
+
         let totalIncome = 0;
         let totalExpense = 0;
-        
+
         records.forEach(record => {
             if (record.type === 'income') {
                 totalIncome += record.amount;
@@ -876,23 +878,59 @@ async function loadFinance() {
                 totalExpense += record.amount;
             }
         });
-        
-        document.getElementById('totalIncome').textContent = `£${totalIncome.toFixed(2)}`;
-        document.getElementById('totalExpense').textContent = `£${totalExpense.toFixed(2)}`;
+
         document.getElementById('balance').textContent = `£${(totalIncome - totalExpense).toFixed(2)}`;
-        
+
+        // Balance over time chart
+        const sorted = [...records].sort((a, b) => a.date.localeCompare(b.date));
+        let running = 0;
+        const chartLabels = [];
+        const chartData = [];
+        sorted.forEach(record => {
+            running += record.type === 'income' ? record.amount : -record.amount;
+            chartLabels.push(record.date);
+            chartData.push(parseFloat(running.toFixed(2)));
+        });
+
+        const ctx = document.getElementById('balanceChart').getContext('2d');
+        if (balanceChartInstance) balanceChartInstance.destroy();
+        balanceChartInstance = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: chartLabels,
+                datasets: [{
+                    data: chartData,
+                    borderColor: '#c084fc',
+                    backgroundColor: 'rgba(192, 132, 252, 0.1)',
+                    borderWidth: 2,
+                    pointBackgroundColor: '#c084fc',
+                    pointRadius: 3,
+                    fill: true,
+                    tension: 0.3
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: { legend: { display: false } },
+                scales: {
+                    x: { ticks: { color: '#8b92b0', maxTicksLimit: 6 }, grid: { color: 'rgba(255,255,255,0.05)' } },
+                    y: { ticks: { color: '#8b92b0', callback: v => '£' + v }, grid: { color: 'rgba(255,255,255,0.05)' } }
+                }
+            }
+        });
+
         const financeList = document.getElementById('financeList');
         financeList.innerHTML = '';
-        
+
         if (records.length === 0) {
             financeList.innerHTML = '<p style="color: #999;">No transactions yet.</p>';
             return;
         }
-        
+
         records.slice(0, 10).forEach(record => {
             const financeItem = document.createElement('div');
             financeItem.className = `finance-item ${record.type}`;
-            
+
             financeItem.innerHTML = `
                 <div class="finance-item-info">
                     <div class="finance-item-category">${record.category || record.type}</div>
@@ -903,7 +941,7 @@ async function loadFinance() {
                     ${record.type === 'income' ? '+' : '-'}£${record.amount.toFixed(2)}
                 </div>
             `;
-            
+
             financeList.appendChild(financeItem);
         });
     } catch (error) {
