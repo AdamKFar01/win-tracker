@@ -872,29 +872,47 @@ async function loadFinance() {
 
         let totalIncome = 0;
         let totalExpense = 0;
+        let totalCryptoIn = 0;
+        let totalCryptoOut = 0;
 
         records.forEach(record => {
-            if (record.type === 'income') {
-                totalIncome += record.amount;
-            } else {
-                totalExpense += record.amount;
-            }
+            if (record.type === 'income')              totalIncome    += record.amount;
+            else if (record.type === 'expense')        totalExpense   += record.amount;
+            else if (record.type === 'crypto_investment') totalCryptoIn  += record.amount;
+            else if (record.type === 'crypto_withdrawal') totalCryptoOut += record.amount;
         });
 
         const currentBalance = totalIncome - totalExpense;
-        document.getElementById('balance').textContent = `£${currentBalance.toFixed(2)}`;
-        document.getElementById('brokeMessage').style.display = currentBalance < 100000 ? 'block' : 'none';
+        const currentCrypto  = totalCryptoIn - totalCryptoOut;
 
-        // Balance over time chart
+        document.getElementById('balance').textContent      = `£${currentBalance.toFixed(2)}`;
+        document.getElementById('cryptoBalance').textContent = `£${currentCrypto.toFixed(2)}`;
+        document.getElementById('brokeMessage').style.display =
+            (currentBalance < 100000 || currentCrypto < 100000) ? 'block' : 'none';
+
+        // Dual-line balance chart — one point per transaction, shared x-axis
         const sorted = [...records].sort((a, b) => a.date.localeCompare(b.date));
-        let running = 0;
-        const chartLabels = [];
-        const chartData = [];
+        let runningSavings = 0;
+        let runningCrypto  = 0;
+        const chartLabels  = [];
+        const savingsData  = [];
+        const cryptoData   = [];
+
         sorted.forEach(record => {
-            running += record.type === 'income' ? record.amount : -record.amount;
+            if (record.type === 'income')                 runningSavings += record.amount;
+            else if (record.type === 'expense')           runningSavings -= record.amount;
+            else if (record.type === 'crypto_investment') runningCrypto  += record.amount;
+            else if (record.type === 'crypto_withdrawal') runningCrypto  -= record.amount;
+
             chartLabels.push(record.date);
-            chartData.push(parseFloat(running.toFixed(2)));
+            savingsData.push(parseFloat(runningSavings.toFixed(2)));
+            cryptoData.push(parseFloat(runningCrypto.toFixed(2)));
         });
+
+        const isLight = document.documentElement.classList.contains('light-mode');
+        const gridColor = isLight ? 'rgba(0,0,0,0.07)' : 'rgba(255,255,255,0.05)';
+        const tickColor = isLight ? '#6b7280' : '#8b92b0';
+        const legendColor = isLight ? '#374151' : '#e5e7eb';
 
         const ctx = document.getElementById('balanceChart').getContext('2d');
         if (balanceChartInstance) balanceChartInstance.destroy();
@@ -902,23 +920,47 @@ async function loadFinance() {
             type: 'line',
             data: {
                 labels: chartLabels,
-                datasets: [{
-                    data: chartData,
-                    borderColor: '#c084fc',
-                    backgroundColor: 'rgba(192, 132, 252, 0.1)',
-                    borderWidth: 2,
-                    pointBackgroundColor: '#c084fc',
-                    pointRadius: 3,
-                    fill: true,
-                    tension: 0.3
-                }]
+                datasets: [
+                    {
+                        label: 'Savings Balance',
+                        data: savingsData,
+                        borderColor: '#c084fc',
+                        backgroundColor: 'rgba(192, 132, 252, 0.08)',
+                        borderWidth: 2,
+                        pointBackgroundColor: '#c084fc',
+                        pointRadius: 3,
+                        fill: true,
+                        tension: 0.3
+                    },
+                    {
+                        label: 'Crypto Balance',
+                        data: cryptoData,
+                        borderColor: '#00c9a7',
+                        backgroundColor: 'rgba(0, 201, 167, 0.06)',
+                        borderWidth: 2,
+                        pointBackgroundColor: '#00c9a7',
+                        pointRadius: 3,
+                        fill: true,
+                        tension: 0.3
+                    }
+                ]
             },
             options: {
                 responsive: true,
-                plugins: { legend: { display: false } },
+                plugins: {
+                    legend: {
+                        display: true,
+                        labels: {
+                            color: legendColor,
+                            usePointStyle: true,
+                            pointStyleWidth: 10,
+                            font: { size: 12, family: 'Inter, sans-serif' }
+                        }
+                    }
+                },
                 scales: {
-                    x: { ticks: { color: '#8b92b0', maxTicksLimit: 6 }, grid: { color: 'rgba(255,255,255,0.05)' } },
-                    y: { ticks: { color: '#8b92b0', callback: v => '£' + v }, grid: { color: 'rgba(255,255,255,0.05)' } }
+                    x: { ticks: { color: tickColor, maxTicksLimit: 6 }, grid: { color: gridColor } },
+                    y: { ticks: { color: tickColor, callback: v => '£' + v }, grid: { color: gridColor } }
                 }
             }
         });
@@ -931,6 +973,8 @@ async function loadFinance() {
             return;
         }
 
+        const isPositiveType = t => t === 'income' || t === 'crypto_investment';
+
         records.slice(0, 10).forEach(record => {
             const financeItem = document.createElement('div');
             financeItem.className = `finance-item ${record.type}`;
@@ -942,7 +986,7 @@ async function loadFinance() {
                     <div class="finance-item-date">${record.date}</div>
                 </div>
                 <div class="finance-item-amount ${record.type}">
-                    ${record.type === 'income' ? '+' : '-'}£${record.amount.toFixed(2)}
+                    ${isPositiveType(record.type) ? '+' : '-'}£${record.amount.toFixed(2)}
                 </div>
             `;
 

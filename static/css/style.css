@@ -852,11 +852,13 @@ h1 {
 
 /* ── Finance ───────────────────────────────────────────────── */
 .finance-summary {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
     margin-bottom: 24px;
 }
 
 .finance-card {
-    display: inline-block;
     padding: 16px 32px;
     border-radius: 15px;
     text-align: center;
@@ -867,6 +869,11 @@ h1 {
     border: 1px solid rgba(192, 132, 252, 0.3);
 }
 
+.finance-card.crypto {
+    background: transparent;
+    border: 1px solid rgba(0, 201, 167, 0.3);
+}
+
 .finance-card h3 {
     font-size: 1em;
     font-weight: 400;
@@ -874,6 +881,9 @@ h1 {
     text-shadow: none;
     color: #c084fc;
 }
+
+.finance-card.crypto h3   { color: #00c9a7; }
+.finance-card.crypto .amount { color: #00c9a7; }
 
 .finance-card .amount {
     font-size: 2em;
@@ -951,8 +961,10 @@ h1 {
     border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
-.finance-item.income  { border-left: 4px solid #10b981; }
-.finance-item.expense { border-left: 4px solid #dc2626; }
+.finance-item.income              { border-left: 4px solid #10b981; }
+.finance-item.expense             { border-left: 4px solid #dc2626; }
+.finance-item.crypto_investment   { border-left: 4px solid #00c9a7; }
+.finance-item.crypto_withdrawal   { border-left: 4px solid rgba(0, 201, 167, 0.45); }
 
 .finance-item-info { flex: 1; }
 
@@ -969,8 +981,10 @@ h1 {
     font-weight: 400;
 }
 
-.finance-item-amount.income  { color: #10b981; }
-.finance-item-amount.expense { color: #dc2626; }
+.finance-item-amount.income            { color: #10b981; }
+.finance-item-amount.expense           { color: #dc2626; }
+.finance-item-amount.crypto_investment { color: #00c9a7; }
+.finance-item-amount.crypto_withdrawal { color: #00c9a7; }
 
 /* ── Daily Goals ───────────────────────────────────────────── */
 .daily-goals-card {
@@ -1292,6 +1306,9 @@ html.light-mode .collapse-btn {
     text-shadow: none;
 }
 html.light-mode .finance-card.balance .amount { color: #7c3aed; }
+html.light-mode .finance-card.crypto { border-color: rgba(0, 201, 167, 0.4); }
+html.light-mode .finance-card.crypto h3     { color: #0d9488; }
+html.light-mode .finance-card.crypto .amount { color: #0d9488; }
 html.light-mode .finance-col-chart h3 { color: #7c3aed; border-bottom-color: rgba(124, 58, 237, 0.14); }
 
 html.light-mode .daily-goals-card {
