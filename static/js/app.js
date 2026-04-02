@@ -1,5 +1,41 @@
-// ── Theme toggle ────────────────────────────────────────────
+// ── Colour helpers ───────────────────────────────────────────
+function cssVar(name) {
+    return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+}
+
+// ── Colour theme switcher ────────────────────────────────────
+function applyColorTheme(themeNum) {
+    document.documentElement.setAttribute('data-theme', themeNum);
+    localStorage.setItem('colorTheme', themeNum);
+    document.querySelectorAll('.theme-dot').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.theme === String(themeNum));
+    });
+    rebuildAllCharts();
+}
+
+function rebuildAllCharts() {
+    if (pillarsChartInstance) { pillarsChartInstance.destroy(); pillarsChartInstance = null; }
+    if (weekChartInstance)    { weekChartInstance.destroy();    weekChartInstance    = null; }
+    if (balanceChartInstance) { balanceChartInstance.destroy(); balanceChartInstance = null; }
+    if (weightChartInstance)  { weightChartInstance.destroy();  weightChartInstance  = null; }
+    loadPillarScores();
+    loadWeekChart();
+    loadFinance();
+    loadWeightLog();
+}
+
+// ── Light / dark toggle ──────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
+    // Restore colour theme
+    const savedTheme = localStorage.getItem('colorTheme') || '1';
+    document.documentElement.setAttribute('data-theme', savedTheme);
+    document.querySelectorAll('.theme-dot').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.theme === savedTheme);
+    });
+    document.querySelectorAll('.theme-dot').forEach(btn => {
+        btn.addEventListener('click', () => applyColorTheme(btn.dataset.theme));
+    });
+
     const themeToggle = document.getElementById('themeToggle');
     if (localStorage.getItem('theme') === 'light') {
         document.documentElement.classList.add('light-mode');
@@ -9,15 +45,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const isLight = document.documentElement.classList.toggle('light-mode');
         localStorage.setItem('theme', isLight ? 'light' : 'dark');
         themeToggle.textContent = isLight ? '☽' : '☀';
-        // Rebuild charts with new colour palette
-        if (pillarsChartInstance) {
-            pillarsChartInstance.destroy();
-            pillarsChartInstance = null;
-        }
-        loadDailySummary();
-        loadWeekChart();
-        loadPillarScores();
-        loadWeightLog();
+        rebuildAllCharts();
     });
 });
 
@@ -499,9 +527,9 @@ function loadPillarsChart(scores) {
         return;
     }
 
-    const isLight = document.documentElement.classList.contains('light-mode');
-    const labelColor  = isLight ? '#7c3aed' : '#c084fc';
-    const gridColor   = isLight ? 'rgba(124, 58, 237, 0.18)' : 'rgba(192, 132, 252, 0.2)';
+    const pRgb = cssVar('--color-primary-rgb');
+    const labelColor = cssVar('--color-primary');
+    const gridColor  = `rgba(${pRgb}, 0.2)`;
 
     pillarsChartInstance = new Chart(ctx, {
         type: 'radar',
@@ -509,10 +537,10 @@ function loadPillarsChart(scores) {
             labels: ['Physical', 'Work', 'Health', 'Relationships', ['Mindset', '& Discipline']],
             datasets: [{
                 data,
-                backgroundColor: 'rgba(192, 132, 252, 0.15)',
-                borderColor: 'rgba(192, 132, 252, 0.8)',
-                pointBackgroundColor: '#c084fc',
-                pointBorderColor: '#c084fc',
+                backgroundColor: `rgba(${pRgb}, 0.15)`,
+                borderColor: `rgba(${pRgb}, 0.8)`,
+                pointBackgroundColor: cssVar('--color-primary'),
+                pointBorderColor: cssVar('--color-primary'),
                 pointRadius: 4,
                 borderWidth: 2
             }]
@@ -663,8 +691,8 @@ async function loadWeekChart() {
                 datasets: [{
                     label: 'Points',
                     data: points,
-                    backgroundColor: 'rgba(155, 89, 255, 0.6)',
-                    borderColor: 'rgba(155, 89, 255, 1)',
+                    backgroundColor: `rgba(${cssVar('--color-primary-rgb')}, 0.6)`,
+                    borderColor: `rgba(${cssVar('--color-primary-rgb')}, 1)`,
                     borderWidth: 1,
                     borderRadius: 4
                 }]
@@ -908,6 +936,11 @@ async function loadFinance() {
         const tickColor = isLight ? '#6b7280' : '#8b92b0';
         const legendColor = isLight ? '#374151' : '#e5e7eb';
 
+        const pRgb = cssVar('--color-primary-rgb');
+        const aRgb = cssVar('--color-accent-rgb');
+        const pColor = cssVar('--color-primary');
+        const aColor = cssVar('--color-accent');
+
         const ctx = document.getElementById('balanceChart').getContext('2d');
         if (balanceChartInstance) balanceChartInstance.destroy();
         balanceChartInstance = new Chart(ctx, {
@@ -918,10 +951,10 @@ async function loadFinance() {
                     {
                         label: 'Savings Balance',
                         data: savingsData,
-                        borderColor: '#c084fc',
-                        backgroundColor: 'rgba(192, 132, 252, 0.08)',
+                        borderColor: pColor,
+                        backgroundColor: `rgba(${pRgb}, 0.08)`,
                         borderWidth: 2,
-                        pointBackgroundColor: '#c084fc',
+                        pointBackgroundColor: pColor,
                         pointRadius: 3,
                         fill: true,
                         tension: 0.3
@@ -929,10 +962,10 @@ async function loadFinance() {
                     {
                         label: 'Crypto Balance',
                         data: cryptoData,
-                        borderColor: '#00c9a7',
-                        backgroundColor: 'rgba(0, 201, 167, 0.06)',
+                        borderColor: aColor,
+                        backgroundColor: `rgba(${aRgb}, 0.06)`,
                         borderWidth: 2,
-                        pointBackgroundColor: '#00c9a7',
+                        pointBackgroundColor: aColor,
                         pointRadius: 3,
                         fill: true,
                         tension: 0.3
@@ -1824,6 +1857,9 @@ async function loadWeightLog() {
         const gridColor = isLight ? 'rgba(0,0,0,0.07)' : 'rgba(255,255,255,0.08)';
         const tickColor = isLight ? '#6b7280' : '#8b92b0';
 
+        const pRgb = cssVar('--color-primary-rgb');
+        const pColor = cssVar('--color-primary');
+
         const ctx = document.getElementById('weightChart').getContext('2d');
         weightChartInstance = new Chart(ctx, {
             type: 'line',
@@ -1832,11 +1868,11 @@ async function loadWeightLog() {
                 datasets: [{
                     label: 'Weight (kg)',
                     data: data.map(d => d.weight_kg),
-                    borderColor: '#c084fc',
-                    backgroundColor: 'rgba(192,132,252,0.1)',
+                    borderColor: pColor,
+                    backgroundColor: `rgba(${pRgb}, 0.1)`,
                     tension: 0.3,
                     pointRadius: 4,
-                    pointBackgroundColor: '#c084fc',
+                    pointBackgroundColor: pColor,
                     fill: true
                 }]
             },

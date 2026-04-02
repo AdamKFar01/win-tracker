@@ -1,4 +1,66 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+/* ── Colour themes (CSS variables) ─────────────────────────── */
+:root {
+    --color-primary:          var(--color-primary);
+    --color-accent:           var(--color-accent);
+    --color-primary-rgb:      192, 132, 252;
+    --color-accent-rgb:       0, 201, 167;
+    --color-primary-dark:     var(--color-primary-dark);
+    --color-accent-dark:      var(--color-accent-dark);
+    --color-primary-dark-rgb: 124, 58, 237;
+    --color-accent-dark-rgb:  13, 148, 136;
+}
+html[data-theme="2"] {
+    --color-primary:          #ff4444;
+    --color-accent:           #ff9500;
+    --color-primary-rgb:      255, 68, 68;
+    --color-accent-rgb:       255, 149, 0;
+    --color-primary-dark:     #cc0000;
+    --color-accent-dark:      #cc7700;
+    --color-primary-dark-rgb: 204, 0, 0;
+    --color-accent-dark-rgb:  204, 119, 0;
+}
+html[data-theme="3"] {
+    --color-primary:          #1a6bff;
+    --color-accent:           #00d4ff;
+    --color-primary-rgb:      26, 107, 255;
+    --color-accent-rgb:       0, 212, 255;
+    --color-primary-dark:     #0044cc;
+    --color-accent-dark:      #0099bb;
+    --color-primary-dark-rgb: 0, 68, 204;
+    --color-accent-dark-rgb:  0, 153, 187;
+}
+
+/* ── Theme switcher dots ─────────────────────────────────────── */
+.theme-switcher {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+}
+.theme-dot {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    border: 2px solid transparent;
+    cursor: pointer;
+    padding: 0;
+    transition: all 0.2s;
+    flex-shrink: 0;
+}
+.theme-dot.active {
+    border-color: #fff;
+    box-shadow: 0 0 0 2px rgba(255,255,255,0.25);
+}
+.header-separator {
+    width: 1px;
+    height: 18px;
+    background: rgba(255,255,255,0.15);
+    margin: 0 2px;
+}
+html.light-mode .theme-dot.active { border-color: #374151; box-shadow: 0 0 0 2px rgba(0,0,0,0.1); }
+html.light-mode .header-separator { background: rgba(0,0,0,0.15); }
+
+
 
 * {
     margin: 0;
@@ -65,10 +127,10 @@ body {
 }
 
 h2, h3 {
-    color: #c084fc;
+    color: var(--color-primary);
     font-weight: 400;
     letter-spacing: 0.3px;
-    text-shadow: 0 0 10px rgba(192, 132, 252, 0.4);
+    text-shadow: 0 0 10px rgba(var(--color-primary-rgb), 0.4);
 }
 
 p {
@@ -83,10 +145,12 @@ header {
 }
 
 h1 {
-    background: linear-gradient(to right, #c084fc, #00c9a7);
+    background: linear-gradient(90deg, var(--color-primary), var(--color-accent), var(--color-primary));
+    background-size: 200% 200%;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
+    animation: xp-sweep 3s ease infinite;
     font-size: 2em;
     font-weight: 400;
     text-transform: uppercase;
@@ -100,15 +164,15 @@ h1 {
     border-radius: 8px;
     font-size: 1em;
     background: #0f1724;
-    color: #c084fc;
+    color: var(--color-primary);
     font-family: 'Inter', sans-serif;
     font-weight: 400;
 }
 
 .date-selector input:focus {
     outline: none;
-    border-color: #c084fc;
-    box-shadow: 0 0 10px rgba(192, 132, 252, 0.4);
+    border-color: var(--color-primary);
+    box-shadow: 0 0 10px rgba(var(--color-primary-rgb), 0.4);
 }
 
 .tabs {
@@ -133,13 +197,13 @@ h1 {
 }
 
 .tab-btn:hover {
-    color: #c084fc;
+    color: var(--color-primary);
 }
 
 .tab-btn.active {
-    color: #c084fc;
-    border-bottom-color: #c084fc;
-    text-shadow: 0 0 10px rgba(192, 132, 252, 0.5);
+    color: var(--color-primary);
+    border-bottom-color: var(--color-primary);
+    text-shadow: 0 0 10px rgba(var(--color-primary-rgb), 0.5);
 }
 
 .tab-content {
@@ -163,8 +227,8 @@ h1 {
     padding: 20px;
     border-radius: 15px;
     text-align: center;
-    box-shadow: 0 0 15px rgba(192, 132, 252, 0.15);
-    border: 1px solid rgba(192, 132, 252, 0.3);
+    box-shadow: 0 0 15px rgba(var(--color-primary-rgb), 0.15);
+    border: 1px solid rgba(var(--color-primary-rgb), 0.3);
 }
 
 .summary-card h3 {
@@ -172,25 +236,25 @@ h1 {
     font-weight: 400;
     margin-bottom: 10px;
     text-shadow: none;
-    color: #c084fc;
+    color: var(--color-primary);
 }
 
 .summary-card.total {
     background: linear-gradient(135deg, rgba(59, 7, 100, 0.3) 0%, transparent 70%);
-    box-shadow: 0 0 20px rgba(192, 132, 252, 0.2);
-    border: 1px solid rgba(192, 132, 252, 0.4);
+    box-shadow: 0 0 20px rgba(var(--color-primary-rgb), 0.2);
+    border: 1px solid rgba(var(--color-primary-rgb), 0.4);
 }
 
 .summary-card .points {
     font-size: 2.5em;
     font-weight: 400;
     margin: 10px 0;
-    color: #c084fc;
+    color: var(--color-primary);
 }
 
 .summary-card .goal {
     font-size: 0.9em;
-    color: rgba(192, 132, 252, 0.65);
+    color: rgba(var(--color-primary-rgb), 0.65);
 }
 
 /* ── Form sections / cards ─────────────────────────────────── */
@@ -200,7 +264,7 @@ h1 {
     padding: 25px;
     border-radius: 8px;
     margin-bottom: 30px;
-    border: 1px solid rgba(192, 132, 252, 0.2);
+    border: 1px solid rgba(var(--color-primary-rgb), 0.2);
 }
 
 .add-task-section {
@@ -211,7 +275,7 @@ h1 {
 .tab-content > h2 {
     padding-bottom: 18px;
     margin-bottom: 25px;
-    border-bottom: 1px solid rgba(192, 132, 252, 0.25);
+    border-bottom: 1px solid rgba(var(--color-primary-rgb), 0.25);
 }
 
 .add-win-section h2,
@@ -223,7 +287,7 @@ h1 {
 .finance-list h3 {
     padding-bottom: 14px;
     margin-bottom: 20px;
-    border-bottom: 1px solid rgba(192, 132, 252, 0.18);
+    border-bottom: 1px solid rgba(var(--color-primary-rgb), 0.18);
 }
 
 .form-group {
@@ -254,15 +318,15 @@ h1 {
 .form-group input:focus,
 .form-group select:focus {
     outline: none;
-    border-color: #c084fc;
-    box-shadow: 0 0 10px rgba(192, 132, 252, 0.3);
+    border-color: var(--color-primary);
+    box-shadow: 0 0 10px rgba(var(--color-primary-rgb), 0.3);
 }
 
 .btn-primary {
     background: transparent;
-    color: #c084fc;
+    color: var(--color-primary);
     padding: 12px 30px;
-    border: 1px solid #c084fc;
+    border: 1px solid var(--color-primary);
     border-radius: 8px;
     font-size: 0.95em;
     font-family: 'Inter', sans-serif;
@@ -270,13 +334,13 @@ h1 {
     letter-spacing: 0.3px;
     cursor: pointer;
     transition: all 0.3s;
-    box-shadow: 0 0 8px rgba(192, 132, 252, 0.2);
+    box-shadow: 0 0 8px rgba(var(--color-primary-rgb), 0.2);
 }
 
 .btn-primary:hover {
     transform: translateY(-2px);
-    background: rgba(192, 132, 252, 0.1);
-    box-shadow: 0 0 15px rgba(192, 132, 252, 0.35);
+    background: rgba(var(--color-primary-rgb), 0.1);
+    box-shadow: 0 0 15px rgba(var(--color-primary-rgb), 0.35);
 }
 
 .btn-secondary {
@@ -293,8 +357,8 @@ h1 {
 }
 
 .btn-secondary:hover {
-    color: #c084fc;
-    border-color: rgba(192, 132, 252, 0.5);
+    color: var(--color-primary);
+    border-color: rgba(var(--color-primary-rgb), 0.5);
 }
 
 .wins-toggle-btn {
@@ -306,7 +370,7 @@ h1 {
 .wins-list {
     margin-bottom: 30px;
     padding: 25px;
-    border: 1px solid rgba(192, 132, 252, 0.2);
+    border: 1px solid rgba(var(--color-primary-rgb), 0.2);
     border-radius: 8px;
     background: linear-gradient(135deg, rgba(59, 7, 100, 0.18) 0%, transparent 70%);
 }
@@ -335,8 +399,8 @@ h1 {
 
 .win-item-category {
     font-weight: 400;
-    color: #c084fc;
-    text-shadow: 0 0 5px rgba(192, 132, 252, 0.3);
+    color: var(--color-primary);
+    text-shadow: 0 0 5px rgba(var(--color-primary-rgb), 0.3);
 }
 
 .win-item-description {
@@ -349,7 +413,7 @@ h1 {
 .win-item-points {
     font-size: 1.2em;
     font-weight: 400;
-    color: #c084fc;
+    color: var(--color-primary);
 }
 
 .win-item-delete {
@@ -374,7 +438,7 @@ h1 {
 .week-chart {
     margin-top: 30px;
     padding: 25px;
-    border: 1px solid rgba(192, 132, 252, 0.2);
+    border: 1px solid rgba(var(--color-primary-rgb), 0.2);
     border-radius: 8px;
     background: linear-gradient(135deg, rgba(59, 7, 100, 0.18) 0%, transparent 70%);
 }
@@ -388,7 +452,7 @@ h1 {
     margin-top: 40px;
     padding: 25px;
     background: linear-gradient(135deg, rgba(59, 7, 100, 0.18) 0%, transparent 70%);
-    border: 1px solid rgba(192, 132, 252, 0.2);
+    border: 1px solid rgba(var(--color-primary-rgb), 0.2);
     border-radius: 8px;
 }
 
@@ -398,7 +462,7 @@ h1 {
     padding: 20px;
     border-radius: 8px;
     margin-bottom: 20px;
-    border: 1px solid rgba(192, 132, 252, 0.15);
+    border: 1px solid rgba(var(--color-primary-rgb), 0.15);
 }
 
 .add-activity-form h3 {
@@ -428,15 +492,15 @@ h1 {
 
 .form-row input:focus {
     outline: none;
-    border-color: #c084fc;
-    box-shadow: 0 0 10px rgba(192, 132, 252, 0.3);
+    border-color: var(--color-primary);
+    box-shadow: 0 0 10px rgba(var(--color-primary-rgb), 0.3);
 }
 
 .activities-list {
     background: transparent;
     padding: 20px;
     border-radius: 8px;
-    border: 1px solid rgba(192, 132, 252, 0.15);
+    border: 1px solid rgba(var(--color-primary-rgb), 0.15);
 }
 
 .activities-list h3 {
@@ -464,7 +528,7 @@ h1 {
 }
 
 .activity-item-name   { color: #ffffff; font-weight: 400; }
-.activity-item-points { color: #c084fc; font-weight: 400; }
+.activity-item-points { color: var(--color-primary); font-weight: 400; }
 
 .activity-item-actions {
     display: flex;
@@ -483,8 +547,8 @@ h1 {
     transition: all 0.3s;
 }
 
-.btn-edit              { background: #c084fc; color: white; }
-.btn-edit:hover        { background: #a855f7; transform: translateY(-2px); }
+.btn-edit              { background: var(--color-primary); color: white; }
+.btn-edit:hover        { background: var(--color-primary-dark); transform: translateY(-2px); }
 .btn-delete-activity   { background: transparent; color: #ff6b6b; border: 1px solid rgba(255, 107, 107, 0.6); }
 .btn-delete-activity:hover { background: rgba(255, 107, 107, 0.12); transform: translateY(-2px); }
 
@@ -497,7 +561,7 @@ h1 {
     padding: 15px;
     background: linear-gradient(135deg, rgba(59, 7, 100, 0.18) 0%, transparent 70%);
     border-radius: 8px;
-    border: 1px solid rgba(192, 132, 252, 0.2);
+    border: 1px solid rgba(var(--color-primary-rgb), 0.2);
 }
 
 .calendar-nav h3 {
@@ -507,7 +571,7 @@ h1 {
 
 .btn-calendar-nav {
     background: #121b2e;
-    color: #c084fc;
+    color: var(--color-primary);
     border: 1px solid rgba(255, 255, 255, 0.08);
     padding: 8px 15px;
     border-radius: 8px;
@@ -519,8 +583,8 @@ h1 {
 
 .btn-calendar-nav:hover {
     background: #1a2840;
-    border-color: #c084fc;
-    box-shadow: 0 0 10px rgba(192, 132, 252, 0.2);
+    border-color: var(--color-primary);
+    box-shadow: 0 0 10px rgba(var(--color-primary-rgb), 0.2);
 }
 
 .calendar-grid {
@@ -530,14 +594,14 @@ h1 {
     background: linear-gradient(135deg, rgba(59, 7, 100, 0.18) 0%, transparent 70%);
     padding: 15px;
     border-radius: 8px;
-    border: 1px solid rgba(192, 132, 252, 0.2);
+    border: 1px solid rgba(var(--color-primary-rgb), 0.2);
     margin-bottom: 30px;
 }
 
 .calendar-header {
     background: rgba(255, 255, 255, 0.03);
 
-    color: #c084fc;
+    color: var(--color-primary);
     text-align: center;
     padding: 10px;
     font-weight: 400;
@@ -566,21 +630,21 @@ h1 {
 
 .calendar-day:hover {
     background: #1a2840;
-    border-color: rgba(192, 132, 252, 0.35);
-    box-shadow: 0 0 10px rgba(192, 132, 252, 0.12);
+    border-color: rgba(var(--color-primary-rgb), 0.35);
+    box-shadow: 0 0 10px rgba(var(--color-primary-rgb), 0.12);
 }
 
 .calendar-day.today {
-    background: linear-gradient(135deg, #3b0764 0%, #c084fc 100%);
-    border-color: #c084fc;
-    box-shadow: 0 0 15px rgba(192, 132, 252, 0.35);
+    background: linear-gradient(135deg, #3b0764 0%, var(--color-primary) 100%);
+    border-color: var(--color-primary);
+    box-shadow: 0 0 15px rgba(var(--color-primary-rgb), 0.35);
 }
 
 .calendar-day.other-month { opacity: 0.3; }
 
 .calendar-day.selected {
-    border: 2px solid #c084fc;
-    box-shadow: 0 0 15px rgba(192, 132, 252, 0.45);
+    border: 2px solid var(--color-primary);
+    box-shadow: 0 0 15px rgba(var(--color-primary-rgb), 0.45);
 }
 
 .day-number {
@@ -590,8 +654,8 @@ h1 {
 }
 
 .calendar-day.today .day-number {
-    color: #c084fc;
-    text-shadow: 0 0 10px rgba(192, 132, 252, 0.8);
+    color: var(--color-primary);
+    text-shadow: 0 0 10px rgba(var(--color-primary-rgb), 0.8);
 }
 
 .day-events {
@@ -602,8 +666,8 @@ h1 {
 }
 
 .mini-event {
-    background: rgba(192, 132, 252, 0.15);
-    border-left: 3px solid #c084fc;
+    background: rgba(var(--color-primary-rgb), 0.15);
+    border-left: 3px solid var(--color-primary);
     padding: 3px 5px;
     border-radius: 3px;
     font-size: 0.7em;
@@ -621,7 +685,7 @@ h1 {
     background: linear-gradient(135deg, rgba(59, 7, 100, 0.18) 0%, transparent 70%);
     padding: 25px;
     border-radius: 8px;
-    border: 1px solid rgba(192, 132, 252, 0.2);
+    border: 1px solid rgba(var(--color-primary-rgb), 0.2);
     margin-bottom: 30px;
 }
 
@@ -644,15 +708,15 @@ h1 {
 
 .add-event-section textarea:focus {
     outline: none;
-    border-color: #c084fc;
-    box-shadow: 0 0 10px rgba(192, 132, 252, 0.3);
+    border-color: var(--color-primary);
+    box-shadow: 0 0 10px rgba(var(--color-primary-rgb), 0.3);
 }
 
 .events-list-section {
     background: linear-gradient(135deg, rgba(59, 7, 100, 0.18) 0%, transparent 70%);
     padding: 25px;
     border-radius: 8px;
-    border: 1px solid rgba(192, 132, 252, 0.2);
+    border: 1px solid rgba(var(--color-primary-rgb), 0.2);
 }
 
 .events-list-section h3 {
@@ -663,7 +727,7 @@ h1 {
     background: rgba(255, 255, 255, 0.03);
 
     border: 1px solid rgba(255, 255, 255, 0.08);
-    border-left: 4px solid #c084fc;
+    border-left: 4px solid var(--color-primary);
     padding: 15px;
     border-radius: 8px;
     margin-bottom: 15px;
@@ -681,7 +745,7 @@ h1 {
 }
 
 .event-title {
-    color: #c084fc;
+    color: var(--color-primary);
     font-size: 1.1em;
     font-weight: 400;
 }
@@ -706,7 +770,7 @@ h1 {
     font-weight: 400;
 }
 
-.event-badge.category  { background: rgba(92,  217, 255, 0.15); color: #c084fc; }
+.event-badge.category  { background: rgba(92,  217, 255, 0.15); color: var(--color-primary); }
 .event-badge.importance{ background: rgba(245, 158, 11,  0.15); color: #f59e0b; }
 
 .event-description {
@@ -734,8 +798,8 @@ h1 {
     transition: all 0.3s;
 }
 
-.btn-edit-event          { background: #c084fc; color: white; }
-.btn-edit-event:hover    { background: #a855f7; transform: translateY(-2px); }
+.btn-edit-event          { background: var(--color-primary); color: white; }
+.btn-edit-event:hover    { background: var(--color-primary-dark); transform: translateY(-2px); }
 .btn-delete-event        { background: transparent; color: #ff6b6b; border: 1px solid rgba(255, 107, 107, 0.6); }
 .btn-delete-event:hover  { background: rgba(255, 107, 107, 0.12); transform: translateY(-2px); }
 
@@ -749,7 +813,7 @@ h1 {
 
 .collapsible-section {
     margin-bottom: 20px;
-    border: 1px solid rgba(192, 132, 252, 0.2);
+    border: 1px solid rgba(var(--color-primary-rgb), 0.2);
     border-radius: 8px;
     overflow: hidden;
     background: linear-gradient(135deg, rgba(59, 7, 100, 0.18) 0%, transparent 70%);
@@ -762,7 +826,7 @@ h1 {
     padding: 15px 20px;
     background: transparent;
     cursor: pointer;
-    border-bottom: 1px solid rgba(192, 132, 252, 0.15);
+    border-bottom: 1px solid rgba(var(--color-primary-rgb), 0.15);
 }
 
 .section-header h3 {
@@ -773,7 +837,7 @@ h1 {
 .collapse-btn {
     background: none;
     border: none;
-    color: #c084fc;
+    color: var(--color-primary);
     font-size: 1.2em;
     cursor: pointer;
     transition: transform 0.3s;
@@ -823,8 +887,8 @@ h1 {
 
 .task-input:focus {
     outline: none;
-    border-color: #c084fc;
-    box-shadow: 0 0 10px rgba(192, 132, 252, 0.3);
+    border-color: var(--color-primary);
+    box-shadow: 0 0 10px rgba(var(--color-primary-rgb), 0.3);
 }
 
 .task-item {
@@ -844,7 +908,7 @@ h1 {
     width: 20px;
     height: 20px;
     cursor: pointer;
-    accent-color: #c084fc;
+    accent-color: var(--color-primary);
 }
 
 .task-item-text { flex: 1; color: #ffffff; }
@@ -887,7 +951,7 @@ h1 {
     border-radius: 15px;
     text-align: center;
     background: linear-gradient(135deg, rgba(59, 7, 100, 0.35) 0%, transparent 70%);
-    border: 1.5px solid rgba(192, 132, 252, 0.5);
+    border: 1.5px solid rgba(var(--color-primary-rgb), 0.5);
 }
 
 .finance-total-card h3 {
@@ -895,7 +959,7 @@ h1 {
     font-weight: 400;
     margin-bottom: 10px;
     text-shadow: none;
-    color: #c084fc;
+    color: var(--color-primary);
     text-transform: uppercase;
     letter-spacing: 0.08em;
 }
@@ -903,7 +967,7 @@ h1 {
 .finance-total-card .amount {
     font-size: 2.8em;
     font-weight: 400;
-    color: #c084fc;
+    color: var(--color-primary);
 }
 
 /* Mini cards in the top summary row */
@@ -922,12 +986,12 @@ h1 {
 
 .finance-mini-card.balance {
     background: transparent;
-    border: 1px solid rgba(192, 132, 252, 0.3);
+    border: 1px solid rgba(var(--color-primary-rgb), 0.3);
 }
 
 .finance-mini-card.crypto {
     background: transparent;
-    border: 1px solid rgba(0, 201, 167, 0.3);
+    border: 1px solid rgba(var(--color-accent-rgb), 0.3);
 }
 
 .finance-mini-card h3 {
@@ -935,20 +999,20 @@ h1 {
     font-weight: 400;
     margin-bottom: 6px;
     text-shadow: none;
-    color: #c084fc;
+    color: var(--color-primary);
     text-transform: uppercase;
     letter-spacing: 0.06em;
 }
 
-.finance-mini-card.crypto h3     { color: #00c9a7; }
-.finance-mini-card.crypto .amount { color: #00c9a7; }
+.finance-mini-card.crypto h3     { color: var(--color-accent); }
+.finance-mini-card.crypto .amount { color: var(--color-accent); }
 
 .finance-mini-card .amount {
     font-size: 1.8em;
     font-weight: 400;
     color: #e5e7eb;
 }
-.finance-mini-card.balance .amount { color: #c084fc; }
+.finance-mini-card.balance .amount { color: var(--color-primary); }
 
 .finance-columns {
     display: grid;
@@ -960,7 +1024,7 @@ h1 {
 
 .finance-col-chart {
     background: linear-gradient(135deg, rgba(59, 7, 100, 0.3) 0%, transparent 70%);
-    border: 1px solid rgba(192, 132, 252, 0.2);
+    border: 1px solid rgba(var(--color-primary-rgb), 0.2);
     border-radius: 8px;
     padding: 25px;
 }
@@ -968,11 +1032,11 @@ h1 {
 .finance-col-chart h3 {
     font-size: 1em;
     font-weight: 400;
-    color: #c084fc;
+    color: var(--color-primary);
     margin-bottom: 16px;
     text-shadow: none;
     padding-bottom: 14px;
-    border-bottom: 1px solid rgba(192, 132, 252, 0.15);
+    border-bottom: 1px solid rgba(var(--color-primary-rgb), 0.15);
 }
 
 #balanceChart {
@@ -996,7 +1060,7 @@ h1 {
 .finance-list {
     margin-top: 30px;
     padding: 25px;
-    border: 1px solid rgba(192, 132, 252, 0.2);
+    border: 1px solid rgba(var(--color-primary-rgb), 0.2);
     border-radius: 8px;
     background: linear-gradient(135deg, rgba(59, 7, 100, 0.18) 0%, transparent 70%);
 }
@@ -1021,14 +1085,14 @@ h1 {
 
 .finance-item.income              { border-left: 4px solid #10b981; }
 .finance-item.expense             { border-left: 4px solid #dc2626; }
-.finance-item.crypto_investment   { border-left: 4px solid #00c9a7; }
-.finance-item.crypto_withdrawal   { border-left: 4px solid rgba(0, 201, 167, 0.45); }
+.finance-item.crypto_investment   { border-left: 4px solid var(--color-accent); }
+.finance-item.crypto_withdrawal   { border-left: 4px solid rgba(var(--color-accent-rgb), 0.45); }
 
 .finance-item-info { flex: 1; }
 
 .finance-item-category {
     font-weight: 400;
-    color: #c084fc;
+    color: var(--color-primary);
 }
 
 .finance-item-description { color: #8b92b0; font-size: 0.9em; }
@@ -1041,13 +1105,13 @@ h1 {
 
 .finance-item-amount.income            { color: #10b981; }
 .finance-item-amount.expense           { color: #dc2626; }
-.finance-item-amount.crypto_investment { color: #00c9a7; }
-.finance-item-amount.crypto_withdrawal { color: #00c9a7; }
+.finance-item-amount.crypto_investment { color: var(--color-accent); }
+.finance-item-amount.crypto_withdrawal { color: var(--color-accent); }
 
 /* ── Daily Goals ───────────────────────────────────────────── */
 .daily-goals-card {
     background: linear-gradient(135deg, rgba(59, 7, 100, 0.3) 0%, transparent 70%);
-    border: 1px solid rgba(192, 132, 252, 0.2);
+    border: 1px solid rgba(var(--color-primary-rgb), 0.2);
     border-radius: 8px;
     padding: 25px;
     margin-bottom: 30px;
@@ -1059,20 +1123,20 @@ h1 {
     align-items: center;
     padding-bottom: 14px;
     margin-bottom: 20px;
-    border-bottom: 1px solid rgba(192, 132, 252, 0.15);
+    border-bottom: 1px solid rgba(var(--color-primary-rgb), 0.15);
 }
 
 .daily-goals-header h3 {
     font-size: 1em;
     font-weight: 400;
-    color: #c084fc;
+    color: var(--color-primary);
     text-shadow: none;
     margin: 0;
 }
 
 .daily-goals-header input[type="date"] {
     background: transparent;
-    border: 1px solid rgba(192, 132, 252, 0.3);
+    border: 1px solid rgba(var(--color-primary-rgb), 0.3);
     border-radius: 6px;
     color: #8b92b0;
     padding: 4px 8px;
@@ -1090,7 +1154,7 @@ h1 {
 .goal-check-area {
     width: 18px;
     height: 18px;
-    border: 1.5px solid rgba(192, 132, 252, 0.5);
+    border: 1.5px solid rgba(var(--color-primary-rgb), 0.5);
     border-radius: 3px;
     cursor: pointer;
     flex-shrink: 0;
@@ -1101,7 +1165,7 @@ h1 {
 }
 
 .goal-check-area:hover {
-    border-color: #c084fc;
+    border-color: var(--color-primary);
 }
 
 .goal-done-icon {
@@ -1115,7 +1179,7 @@ h1 {
     flex: 1;
     background: transparent;
     border: none;
-    border-bottom: 1px solid rgba(192, 132, 252, 0.25);
+    border-bottom: 1px solid rgba(var(--color-primary-rgb), 0.25);
     color: #e5e7eb;
     padding: 4px 0;
     font-size: 0.95em;
@@ -1125,7 +1189,7 @@ h1 {
 }
 
 .goal-text-input:focus {
-    border-bottom-color: #c084fc;
+    border-bottom-color: var(--color-primary);
 }
 
 .goal-text-input:disabled {
@@ -1135,7 +1199,7 @@ h1 {
 }
 
 .btn-teal {
-    background: #0d9488;
+    background: var(--color-accent-dark);
     color: #fff;
     border: none;
     border-radius: 8px;
@@ -1148,14 +1212,14 @@ h1 {
 }
 
 .btn-teal:hover {
-    background: #0f766e;
+    background: var(--color-accent-dark);
 }
 
 /* ── Theme toggle button ────────────────────────────────────── */
 .theme-toggle {
     background: transparent;
-    border: 1px solid rgba(192, 132, 252, 0.4);
-    color: #c084fc;
+    border: 1px solid rgba(var(--color-primary-rgb), 0.4);
+    color: var(--color-primary);
     border-radius: 6px;
     padding: 5px 11px;
     cursor: pointer;
@@ -1165,8 +1229,8 @@ h1 {
     line-height: 1;
 }
 .theme-toggle:hover {
-    background: rgba(192, 132, 252, 0.1);
-    box-shadow: 0 0 8px rgba(192, 132, 252, 0.25);
+    background: rgba(var(--color-primary-rgb), 0.1);
+    box-shadow: 0 0 8px rgba(var(--color-primary-rgb), 0.25);
 }
 
 /* ── Light mode overrides ───────────────────────────────────── */
@@ -1206,7 +1270,7 @@ html.light-mode .container {
 /* Headings */
 html.light-mode h2,
 html.light-mode h3 {
-    color: #7c3aed;
+    color: var(--color-primary-dark);
     text-shadow: none;
 }
 
@@ -1216,25 +1280,25 @@ html.light-mode p {
 
 /* Tabs */
 html.light-mode .tabs {
-    border-bottom-color: rgba(124, 58, 237, 0.2);
+    border-bottom-color: rgba(var(--color-primary-dark-rgb), 0.2);
 }
 html.light-mode .tab-btn {
     color: #6b7280;
 }
 html.light-mode .tab-btn:hover,
 html.light-mode .tab-btn.active {
-    color: #7c3aed;
+    color: var(--color-primary-dark);
 }
 html.light-mode .tab-btn.active {
-    border-bottom-color: #7c3aed;
+    border-bottom-color: var(--color-primary-dark);
     text-shadow: none;
 }
 
 /* Date input */
 html.light-mode .date-selector input {
     background: #ffffff;
-    color: #7c3aed;
-    border-color: rgba(124, 58, 237, 0.25);
+    color: var(--color-primary-dark);
+    border-color: rgba(var(--color-primary-dark-rgb), 0.25);
 }
 
 /* Form inputs, selects, textareas, task inputs */
@@ -1271,27 +1335,27 @@ html.light-mode .collapsible-section,
 html.light-mode .finance-list,
 html.light-mode .add-activity-form,
 html.light-mode .activities-list {
-    background: linear-gradient(135deg, rgba(192, 132, 252, 0.08) 0%, transparent 70%);
-    border-color: rgba(124, 58, 237, 0.18);
+    background: linear-gradient(135deg, rgba(var(--color-primary-rgb), 0.08) 0%, transparent 70%);
+    border-color: rgba(var(--color-primary-dark-rgb), 0.18);
 }
 
 /* Summary cards */
 html.light-mode .summary-card,
 html.light-mode .summary-card.total {
-    background: linear-gradient(135deg, rgba(192, 132, 252, 0.1) 0%, transparent 70%);
-    border-color: rgba(124, 58, 237, 0.2);
-    box-shadow: 0 0 12px rgba(124, 58, 237, 0.08);
+    background: linear-gradient(135deg, rgba(var(--color-primary-rgb), 0.1) 0%, transparent 70%);
+    border-color: rgba(var(--color-primary-dark-rgb), 0.2);
+    box-shadow: 0 0 12px rgba(var(--color-primary-dark-rgb), 0.08);
 }
 
 /* Finance cards */
 html.light-mode .finance-card.balance {
     background: transparent;
-    border-color: rgba(124, 58, 237, 0.25);
+    border-color: rgba(var(--color-primary-dark-rgb), 0.25);
 }
 
 html.light-mode .finance-col-chart {
-    background: linear-gradient(135deg, rgba(192, 132, 252, 0.08) 0%, transparent 70%);
-    border-color: rgba(124, 58, 237, 0.18);
+    background: linear-gradient(135deg, rgba(var(--color-primary-rgb), 0.08) 0%, transparent 70%);
+    border-color: rgba(var(--color-primary-dark-rgb), 0.18);
 }
 
 /* List items */
@@ -1304,28 +1368,28 @@ html.light-mode .finance-item {
     border-color: rgba(0, 0, 0, 0.08);
 }
 html.light-mode .calendar-event-item {
-    border-left-color: #7c3aed;
+    border-left-color: var(--color-primary-dark);
 }
 
 /* Calendar days */
 html.light-mode .calendar-header {
-    background: rgba(124, 58, 237, 0.06);
+    background: rgba(var(--color-primary-dark-rgb), 0.06);
     border-color: rgba(0, 0, 0, 0.07);
-    color: #7c3aed;
+    color: var(--color-primary-dark);
 }
 html.light-mode .calendar-day {
     background: rgba(255, 255, 255, 0.65);
     border-color: rgba(0, 0, 0, 0.07);
 }
 html.light-mode .calendar-day:hover {
-    background: rgba(192, 132, 252, 0.12);
-    border-color: rgba(124, 58, 237, 0.3);
-    box-shadow: 0 0 8px rgba(124, 58, 237, 0.1);
+    background: rgba(var(--color-primary-rgb), 0.12);
+    border-color: rgba(var(--color-primary-dark-rgb), 0.3);
+    box-shadow: 0 0 8px rgba(var(--color-primary-dark-rgb), 0.1);
 }
 html.light-mode .calendar-day.today {
-    background: linear-gradient(135deg, #c084fc 0%, #7c3aed 100%);
-    border-color: #7c3aed;
-    box-shadow: 0 0 12px rgba(124, 58, 237, 0.3);
+    background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
+    border-color: var(--color-primary-dark);
+    box-shadow: 0 0 12px rgba(var(--color-primary-dark-rgb), 0.3);
 }
 html.light-mode .calendar-day.today .day-number {
     color: #ffffff;
@@ -1337,17 +1401,17 @@ html.light-mode .day-number { color: #1f2937; }
 html.light-mode .btn-calendar-nav {
     background: #e9ecf3;
     border-color: rgba(0, 0, 0, 0.1);
-    color: #7c3aed;
+    color: var(--color-primary-dark);
 }
 html.light-mode .btn-calendar-nav:hover {
     background: #ddd6fe;
-    border-color: #7c3aed;
+    border-color: var(--color-primary-dark);
     box-shadow: none;
 }
 
 /* Section header divider */
 html.light-mode .section-header {
-    border-bottom-color: rgba(124, 58, 237, 0.12);
+    border-bottom-color: rgba(var(--color-primary-dark-rgb), 0.12);
 }
 
 /* Text colors in lists */
@@ -1360,35 +1424,35 @@ html.light-mode .summary-card h3,
 html.light-mode .summary-card .points,
 html.light-mode .finance-card h3,
 html.light-mode .collapse-btn {
-    color: #7c3aed;
+    color: var(--color-primary-dark);
     text-shadow: none;
 }
 html.light-mode .finance-total-card {
-    background: linear-gradient(135deg, rgba(192, 132, 252, 0.1) 0%, transparent 70%);
-    border-color: rgba(124, 58, 237, 0.4);
+    background: linear-gradient(135deg, rgba(var(--color-primary-rgb), 0.1) 0%, transparent 70%);
+    border-color: rgba(var(--color-primary-dark-rgb), 0.4);
 }
-html.light-mode .finance-total-card h3     { color: #7c3aed; }
-html.light-mode .finance-total-card .amount { color: #7c3aed; }
+html.light-mode .finance-total-card h3     { color: var(--color-primary-dark); }
+html.light-mode .finance-total-card .amount { color: var(--color-primary-dark); }
 
-html.light-mode .finance-mini-card.balance { border-color: rgba(124, 58, 237, 0.3); }
-html.light-mode .finance-mini-card.balance .amount { color: #7c3aed; }
-html.light-mode .finance-mini-card.balance h3 { color: #7c3aed; }
-html.light-mode .finance-mini-card.crypto { border-color: rgba(0, 201, 167, 0.4); }
-html.light-mode .finance-mini-card.crypto h3     { color: #0d9488; }
-html.light-mode .finance-mini-card.crypto .amount { color: #0d9488; }
-html.light-mode .finance-col-chart h3 { color: #7c3aed; border-bottom-color: rgba(124, 58, 237, 0.14); }
+html.light-mode .finance-mini-card.balance { border-color: rgba(var(--color-primary-dark-rgb), 0.3); }
+html.light-mode .finance-mini-card.balance .amount { color: var(--color-primary-dark); }
+html.light-mode .finance-mini-card.balance h3 { color: var(--color-primary-dark); }
+html.light-mode .finance-mini-card.crypto { border-color: rgba(var(--color-accent-rgb), 0.4); }
+html.light-mode .finance-mini-card.crypto h3     { color: var(--color-accent-dark); }
+html.light-mode .finance-mini-card.crypto .amount { color: var(--color-accent-dark); }
+html.light-mode .finance-col-chart h3 { color: var(--color-primary-dark); border-bottom-color: rgba(var(--color-primary-dark-rgb), 0.14); }
 
 html.light-mode .daily-goals-card {
-    background: linear-gradient(135deg, rgba(192, 132, 252, 0.08) 0%, transparent 70%);
-    border-color: rgba(124, 58, 237, 0.18);
+    background: linear-gradient(135deg, rgba(var(--color-primary-rgb), 0.08) 0%, transparent 70%);
+    border-color: rgba(var(--color-primary-dark-rgb), 0.18);
 }
-html.light-mode .daily-goals-header { border-bottom-color: rgba(124, 58, 237, 0.14); }
-html.light-mode .daily-goals-header h3 { color: #7c3aed; }
-html.light-mode .daily-goals-header input[type="date"] { color: #6b7280; border-color: rgba(124, 58, 237, 0.25); }
-html.light-mode .goal-check-area { border-color: rgba(124, 58, 237, 0.4); }
-html.light-mode .goal-check-area:hover { border-color: #7c3aed; }
-html.light-mode .goal-text-input { color: #1f2937; border-bottom-color: rgba(124, 58, 237, 0.2); }
-html.light-mode .goal-text-input:focus { border-bottom-color: #7c3aed; }
+html.light-mode .daily-goals-header { border-bottom-color: rgba(var(--color-primary-dark-rgb), 0.14); }
+html.light-mode .daily-goals-header h3 { color: var(--color-primary-dark); }
+html.light-mode .daily-goals-header input[type="date"] { color: #6b7280; border-color: rgba(var(--color-primary-dark-rgb), 0.25); }
+html.light-mode .goal-check-area { border-color: rgba(var(--color-primary-dark-rgb), 0.4); }
+html.light-mode .goal-check-area:hover { border-color: var(--color-primary-dark); }
+html.light-mode .goal-text-input { color: #1f2937; border-bottom-color: rgba(var(--color-primary-dark-rgb), 0.2); }
+html.light-mode .goal-text-input:focus { border-bottom-color: var(--color-primary-dark); }
 html.light-mode .goal-text-input:disabled { color: #9ca3af; border-bottom-color: rgba(0, 0, 0, 0.08); }
 
 html.light-mode .activity-item-name,
@@ -1406,7 +1470,7 @@ html.light-mode .finance-item-date { color: #9ca3af; }
 
 /* Tab headings separator */
 html.light-mode .tab-content > h2 {
-    border-bottom-color: rgba(124, 58, 237, 0.18);
+    border-bottom-color: rgba(var(--color-primary-dark-rgb), 0.18);
 }
 html.light-mode .add-win-section h2,
 html.light-mode .wins-list h2,
@@ -1415,22 +1479,22 @@ html.light-mode .activity-management h2,
 html.light-mode .add-event-section h3,
 html.light-mode .events-list-section h3,
 html.light-mode .finance-list h3 {
-    border-bottom-color: rgba(124, 58, 237, 0.14);
+    border-bottom-color: rgba(var(--color-primary-dark-rgb), 0.14);
 }
 
 /* Mini calendar events */
 html.light-mode .mini-event {
-    background: rgba(192, 132, 252, 0.15);
+    background: rgba(var(--color-primary-rgb), 0.15);
     color: #1f2937;
 }
 
 /* Theme toggle in light mode */
 html.light-mode .theme-toggle {
-    color: #7c3aed;
-    border-color: rgba(124, 58, 237, 0.4);
+    color: var(--color-primary-dark);
+    border-color: rgba(var(--color-primary-dark-rgb), 0.4);
 }
 html.light-mode .theme-toggle:hover {
-    background: rgba(124, 58, 237, 0.08);
+    background: rgba(var(--color-primary-dark-rgb), 0.08);
     box-shadow: none;
 }
 
@@ -1459,7 +1523,7 @@ html.light-mode .theme-toggle:hover {
     align-items: center;
     gap: 16px;
     padding: 25px;
-    border: 1px solid rgba(192, 132, 252, 0.2);
+    border: 1px solid rgba(var(--color-primary-rgb), 0.2);
     border-radius: 8px;
     background: linear-gradient(135deg, rgba(59, 7, 100, 0.18) 0%, transparent 70%);
 }
@@ -1468,7 +1532,7 @@ html.light-mode .theme-toggle:hover {
     width: 100%;
     text-align: center;
     padding-bottom: 14px;
-    border-bottom: 1px solid rgba(192, 132, 252, 0.18);
+    border-bottom: 1px solid rgba(var(--color-primary-rgb), 0.18);
     margin-bottom: 0;
 }
 
@@ -1493,12 +1557,12 @@ html.light-mode .theme-toggle:hover {
 
 #overallGrowth {
     text-align: center;
-    color: #c084fc;
+    color: var(--color-primary);
     font-size: 0.95em;
     letter-spacing: 0.3px;
 }
 
-html.light-mode #overallGrowth { color: #7c3aed; }
+html.light-mode #overallGrowth { color: var(--color-primary-dark); }
 
 /* ── Calendar logo badge ───────────────────────────────────── */
 .day-logo-badge {
@@ -1527,7 +1591,7 @@ html.light-mode #overallGrowth { color: #7c3aed; }
 
 .pillar-score-row label {
     flex: 1;
-    color: #c084fc;
+    color: var(--color-primary);
     font-size: 0.9em;
     font-weight: 400;
 }
@@ -1535,7 +1599,7 @@ html.light-mode #overallGrowth { color: #7c3aed; }
 .pillar-score-row input[type="number"] {
     width: 64px;
     padding: 5px 8px;
-    border: 1px solid rgba(192, 132, 252, 0.35);
+    border: 1px solid rgba(var(--color-primary-rgb), 0.35);
     border-radius: 6px;
     background: #080d14;
     color: #ffffff;
@@ -1546,12 +1610,12 @@ html.light-mode #overallGrowth { color: #7c3aed; }
 
 .pillar-score-row input[type="number"]:focus {
     outline: none;
-    border-color: #c084fc;
-    box-shadow: 0 0 8px rgba(192, 132, 252, 0.3);
+    border-color: var(--color-primary);
+    box-shadow: 0 0 8px rgba(var(--color-primary-rgb), 0.3);
 }
 
 .pillar-score-max {
-    color: rgba(192, 132, 252, 0.6);
+    color: rgba(var(--color-primary-rgb), 0.6);
     font-size: 0.85em;
     min-width: 24px;
 }
@@ -1562,8 +1626,8 @@ html.light-mode #overallGrowth { color: #7c3aed; }
     padding: 8px 20px;
 }
 
-html.light-mode .pillar-score-row label { color: #7c3aed; }
-html.light-mode .pillar-score-row input[type="number"] { background: #fff; color: #1f2937; border-color: rgba(124, 58, 237, 0.3); }
+html.light-mode .pillar-score-row label { color: var(--color-primary-dark); }
+html.light-mode .pillar-score-row input[type="number"] { background: #fff; color: #1f2937; border-color: rgba(var(--color-primary-dark-rgb), 0.3); }
 html.light-mode .pillar-score-max { color: rgba(124, 58, 237, 0.6); }
 
 /* ── "Other" custom text inputs ────────────────────────────── */
@@ -1587,8 +1651,8 @@ html.light-mode .pillar-score-max { color: rgba(124, 58, 237, 0.6); }
 
 .other-input:focus {
     outline: none;
-    border-color: #c084fc;
-    box-shadow: 0 0 10px rgba(192, 132, 252, 0.3);
+    border-color: var(--color-primary);
+    box-shadow: 0 0 10px rgba(var(--color-primary-rgb), 0.3);
 }
 
 html.light-mode .other-input {
@@ -1606,15 +1670,15 @@ html.light-mode .other-input {
 
 /* ── Light mode: dashboard right panel ─────────────────────── */
 html.light-mode .dashboard-right {
-    background: linear-gradient(135deg, rgba(192, 132, 252, 0.08) 0%, transparent 70%);
-    border-color: rgba(124, 58, 237, 0.18);
+    background: linear-gradient(135deg, rgba(var(--color-primary-rgb), 0.08) 0%, transparent 70%);
+    border-color: rgba(var(--color-primary-dark-rgb), 0.18);
 }
 
 /* ── Health Tab ─────────────────────────────────────────────── */
 .health-metrics-card,
 .health-activity-card {
     background: linear-gradient(135deg, rgba(59, 7, 100, 0.3) 0%, transparent 70%);
-    border: 1px solid rgba(192, 132, 252, 0.2);
+    border: 1px solid rgba(var(--color-primary-rgb), 0.2);
     border-radius: 8px;
     padding: 25px;
     margin-bottom: 24px;
@@ -1626,14 +1690,14 @@ html.light-mode .dashboard-right {
     align-items: center;
     padding-bottom: 14px;
     margin-bottom: 18px;
-    border-bottom: 1px solid rgba(192, 132, 252, 0.15);
+    border-bottom: 1px solid rgba(var(--color-primary-rgb), 0.15);
 }
 
 .health-section-header h3,
 .health-activity-card h3 {
     font-size: 1em;
     font-weight: 400;
-    color: #c084fc;
+    color: var(--color-primary);
     text-shadow: none;
     margin: 0;
 }
@@ -1641,7 +1705,7 @@ html.light-mode .dashboard-right {
 .health-activity-card h3 {
     padding-bottom: 14px;
     margin-bottom: 18px;
-    border-bottom: 1px solid rgba(192, 132, 252, 0.15);
+    border-bottom: 1px solid rgba(var(--color-primary-rgb), 0.15);
 }
 
 /* Targets row */
@@ -1661,8 +1725,8 @@ html.light-mode .dashboard-right {
     border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
-.calories-box { border-color: rgba(192, 132, 252, 0.35); }
-.protein-box  { border-color: rgba(0, 201, 167, 0.35); }
+.calories-box { border-color: rgba(var(--color-primary-rgb), 0.35); }
+.protein-box  { border-color: rgba(var(--color-accent-rgb), 0.35); }
 .carbs-box    { border-color: rgba(245, 158, 11, 0.35); }
 .fat-box      { border-color: rgba(251, 113, 133, 0.35); }
 
@@ -1680,8 +1744,8 @@ html.light-mode .dashboard-right {
     color: #e5e7eb;
 }
 
-.calories-box .health-target-value { color: #c084fc; }
-.protein-box  .health-target-value { color: #00c9a7; }
+.calories-box .health-target-value { color: var(--color-primary); }
+.protein-box  .health-target-value { color: var(--color-accent); }
 .carbs-box    .health-target-value { color: #f59e0b; }
 .fat-box      .health-target-value { color: #fb7185; }
 
@@ -1712,14 +1776,14 @@ html.light-mode .dashboard-right {
 .health-date-bar h3 {
     font-size: 1em;
     font-weight: 400;
-    color: #c084fc;
+    color: var(--color-primary);
     text-shadow: none;
     margin: 0;
 }
 
 .health-date-bar input[type="date"] {
     background: transparent;
-    border: 1px solid rgba(192, 132, 252, 0.3);
+    border: 1px solid rgba(var(--color-primary-rgb), 0.3);
     border-radius: 6px;
     color: #8b92b0;
     padding: 4px 8px;
@@ -1739,7 +1803,7 @@ html.light-mode .dashboard-right {
 /* Meal sections */
 .health-meal-section {
     background: rgba(255, 255, 255, 0.02);
-    border: 1px solid rgba(192, 132, 252, 0.15);
+    border: 1px solid rgba(var(--color-primary-rgb), 0.15);
     border-radius: 8px;
     padding: 16px;
     margin-bottom: 14px;
@@ -1750,7 +1814,7 @@ html.light-mode .dashboard-right {
 .health-meal-title {
     font-size: 0.9em;
     font-weight: 400;
-    color: #c084fc;
+    color: var(--color-primary);
     text-shadow: none;
     margin: 0 0 12px;
     text-transform: uppercase;
@@ -1768,7 +1832,7 @@ html.light-mode .dashboard-right {
     width: 100%;
     background: transparent;
     border: none;
-    border-bottom: 1px solid rgba(192, 132, 252, 0.25);
+    border-bottom: 1px solid rgba(var(--color-primary-rgb), 0.25);
     color: #e5e7eb;
     padding: 4px 0;
     font-size: 0.9em;
@@ -1777,7 +1841,7 @@ html.light-mode .dashboard-right {
     box-sizing: border-box;
 }
 
-.food-name-input:focus { border-bottom-color: #c084fc; }
+.food-name-input:focus { border-bottom-color: var(--color-primary); }
 
 .food-macros-row {
     display: grid;
@@ -1799,7 +1863,7 @@ html.light-mode .dashboard-right {
     text-align: center;
 }
 
-.food-macro-input:focus { border-color: rgba(192, 132, 252, 0.4); }
+.food-macro-input:focus { border-color: rgba(var(--color-primary-rgb), 0.4); }
 
 .btn-sm {
     padding: 6px 14px;
@@ -1818,7 +1882,7 @@ html.light-mode .dashboard-right {
     background: rgba(255, 255, 255, 0.03);
     border: 1px solid rgba(255, 255, 255, 0.06);
     border-radius: 6px;
-    border-left: 3px solid rgba(192, 132, 252, 0.4);
+    border-left: 3px solid rgba(var(--color-primary-rgb), 0.4);
 }
 
 .health-food-item-info { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0; }
@@ -1830,7 +1894,7 @@ html.light-mode .dashboard-right {
 /* Right summary panel */
 .health-summary-right {
     background: linear-gradient(135deg, rgba(59, 7, 100, 0.3) 0%, transparent 70%);
-    border: 1px solid rgba(192, 132, 252, 0.2);
+    border: 1px solid rgba(var(--color-primary-rgb), 0.2);
     border-radius: 8px;
     padding: 22px;
     display: flex;
@@ -1841,11 +1905,11 @@ html.light-mode .dashboard-right {
 .health-summary-right h3 {
     font-size: 1em;
     font-weight: 400;
-    color: #c084fc;
+    color: var(--color-primary);
     text-shadow: none;
     margin: 0 0 4px;
     padding-bottom: 12px;
-    border-bottom: 1px solid rgba(192, 132, 252, 0.15);
+    border-bottom: 1px solid rgba(var(--color-primary-rgb), 0.15);
 }
 
 .health-summary-block { display: flex; flex-direction: column; gap: 8px; }
@@ -1867,7 +1931,7 @@ html.light-mode .dashboard-right {
 
 .calories-bar-fill {
     height: 100%;
-    background: #00c9a7;
+    background: var(--color-accent);
     border-radius: 5px;
     transition: width 0.4s ease, background 0.3s ease;
 }
@@ -1887,8 +1951,8 @@ html.light-mode .dashboard-right {
 }
 
 .macro-legend-item { font-size: 0.78em; color: #8b92b0; }
-.carbs-legend   b  { color: #c084fc; }
-.protein-legend b  { color: #00c9a7; }
+.carbs-legend   b  { color: var(--color-primary); }
+.protein-legend b  { color: var(--color-accent); }
 .fat-legend     b  { color: #f59e0b; }
 
 /* Water tracker */
@@ -1934,13 +1998,13 @@ html.light-mode .dashboard-right {
     background: rgba(255, 255, 255, 0.03);
     border: 1px solid rgba(255, 255, 255, 0.06);
     border-radius: 8px;
-    border-left: 4px solid #00c9a7;
+    border-left: 4px solid var(--color-accent);
 }
 
 .activity-item-info   { flex: 1; display: flex; flex-direction: column; gap: 2px; }
 .activity-item-name   { font-size: 0.92em; color: #e5e7eb; }
 .activity-item-detail { font-size: 0.8em; color: #6b7280; }
-.activity-item-burned { font-size: 0.92em; color: #00c9a7; white-space: nowrap; }
+.activity-item-burned { font-size: 0.92em; color: var(--color-accent); white-space: nowrap; }
 
 /* Net calories box */
 .net-calories-box {
@@ -1950,64 +2014,64 @@ html.light-mode .dashboard-right {
     gap: 12px;
     padding: 14px 20px;
     border-radius: 8px;
-    border: 1px solid rgba(192, 132, 252, 0.25);
-    background: rgba(192, 132, 252, 0.05);
+    border: 1px solid rgba(var(--color-primary-rgb), 0.25);
+    background: rgba(var(--color-primary-rgb), 0.05);
     flex-wrap: wrap;
 }
 
 .net-calories-box.net-over  { border-color: rgba(239, 68, 68, 0.35); background: rgba(239, 68, 68, 0.05); }
-.net-calories-box.net-under { border-color: rgba(0, 201, 167, 0.3);  background: rgba(0, 201, 167, 0.04); }
+.net-calories-box.net-under { border-color: rgba(var(--color-accent-rgb), 0.3);  background: rgba(var(--color-accent-rgb), 0.04); }
 
 .net-cal-label  { font-size: 0.85em; color: #8b92b0; text-transform: uppercase; letter-spacing: 0.05em; }
 .net-cal-value  { font-size: 1.4em; font-weight: 400; color: #e5e7eb; }
 .net-cal-target { font-size: 0.82em; color: #6b7280; }
 
 .net-calories-box.net-over  .net-cal-value { color: #ef4444; }
-.net-calories-box.net-under .net-cal-value { color: #00c9a7; }
+.net-calories-box.net-under .net-cal-value { color: var(--color-accent); }
 
 /* ── Health light-mode ──────────────────────────────────────── */
 html.light-mode .health-metrics-card,
 html.light-mode .health-activity-card {
-    background: linear-gradient(135deg, rgba(192, 132, 252, 0.08) 0%, transparent 70%);
-    border-color: rgba(124, 58, 237, 0.18);
+    background: linear-gradient(135deg, rgba(var(--color-primary-rgb), 0.08) 0%, transparent 70%);
+    border-color: rgba(var(--color-primary-dark-rgb), 0.18);
 }
 
 html.light-mode .health-section-header,
-html.light-mode .health-activity-card h3 { border-bottom-color: rgba(124, 58, 237, 0.14); }
+html.light-mode .health-activity-card h3 { border-bottom-color: rgba(var(--color-primary-dark-rgb), 0.14); }
 
 html.light-mode .health-section-header h3,
 html.light-mode .health-activity-card h3,
 html.light-mode .health-meal-title,
 html.light-mode .health-date-bar h3,
-html.light-mode .health-summary-right h3 { color: #7c3aed; }
+html.light-mode .health-summary-right h3 { color: var(--color-primary-dark); }
 
-html.light-mode .health-date-bar input[type="date"] { color: #6b7280; border-color: rgba(124, 58, 237, 0.25); }
+html.light-mode .health-date-bar input[type="date"] { color: #6b7280; border-color: rgba(var(--color-primary-dark-rgb), 0.25); }
 
 html.light-mode .health-meal-section {
     background: rgba(0, 0, 0, 0.02);
-    border-color: rgba(124, 58, 237, 0.14);
+    border-color: rgba(var(--color-primary-dark-rgb), 0.14);
 }
 
-html.light-mode .food-name-input { color: #1f2937; border-bottom-color: rgba(124, 58, 237, 0.2); }
-html.light-mode .food-name-input:focus { border-bottom-color: #7c3aed; }
+html.light-mode .food-name-input { color: #1f2937; border-bottom-color: rgba(var(--color-primary-dark-rgb), 0.2); }
+html.light-mode .food-name-input:focus { border-bottom-color: var(--color-primary-dark); }
 html.light-mode .food-macro-input { color: #1f2937; border-color: rgba(0, 0, 0, 0.1); }
-html.light-mode .food-macro-input:focus { border-color: rgba(124, 58, 237, 0.35); }
+html.light-mode .food-macro-input:focus { border-color: rgba(var(--color-primary-dark-rgb), 0.35); }
 
 html.light-mode .health-food-item {
     background: rgba(255, 255, 255, 0.7);
     border-color: rgba(0, 0, 0, 0.08);
-    border-left-color: rgba(124, 58, 237, 0.4);
+    border-left-color: rgba(var(--color-primary-dark-rgb), 0.4);
 }
 
 html.light-mode .health-food-name   { color: #1f2937; }
 html.light-mode .health-food-macros { color: #9ca3af; }
 
 html.light-mode .health-summary-right {
-    background: linear-gradient(135deg, rgba(192, 132, 252, 0.08) 0%, transparent 70%);
-    border-color: rgba(124, 58, 237, 0.18);
+    background: linear-gradient(135deg, rgba(var(--color-primary-rgb), 0.08) 0%, transparent 70%);
+    border-color: rgba(var(--color-primary-dark-rgb), 0.18);
 }
 
-html.light-mode .health-summary-right h3 { border-bottom-color: rgba(124, 58, 237, 0.14); }
+html.light-mode .health-summary-right h3 { border-bottom-color: rgba(var(--color-primary-dark-rgb), 0.14); }
 
 html.light-mode .calories-bar-wrap { background: rgba(0, 0, 0, 0.07); }
 
@@ -2019,14 +2083,14 @@ html.light-mode .health-activity-item {
 html.light-mode .activity-item-name { color: #1f2937; }
 
 html.light-mode .net-calories-box {
-    border-color: rgba(124, 58, 237, 0.2);
-    background: rgba(124, 58, 237, 0.04);
+    border-color: rgba(var(--color-primary-dark-rgb), 0.2);
+    background: rgba(var(--color-primary-dark-rgb), 0.04);
 }
 html.light-mode .net-calories-box.net-over  { border-color: rgba(239, 68, 68, 0.3); background: rgba(239, 68, 68, 0.04); }
-html.light-mode .net-calories-box.net-under { border-color: rgba(0, 201, 167, 0.3); background: rgba(0, 201, 167, 0.04); }
+html.light-mode .net-calories-box.net-under { border-color: rgba(var(--color-accent-rgb), 0.3); background: rgba(var(--color-accent-rgb), 0.04); }
 
-html.light-mode .calories-box { border-color: rgba(124, 58, 237, 0.3); }
-html.light-mode .calories-box .health-target-value { color: #7c3aed; }
+html.light-mode .calories-box { border-color: rgba(var(--color-primary-dark-rgb), 0.3); }
+html.light-mode .calories-box .health-target-value { color: var(--color-primary-dark); }
 html.light-mode .health-target-value { color: #1f2937; }
 
 /* ── Health responsive ──────────────────────────────────────── */
@@ -2039,10 +2103,10 @@ html.light-mode .health-target-value { color: #1f2937; }
 .task-xp-input {
     width: 72px;
     padding: 8px 10px;
-    border: 1px solid rgba(192, 132, 252, 0.25);
+    border: 1px solid rgba(var(--color-primary-rgb), 0.25);
     border-radius: 8px;
     background: transparent;
-    color: #c084fc;
+    color: var(--color-primary);
     font-family: 'Inter', sans-serif;
     font-size: 0.88em;
     text-align: center;
@@ -2052,17 +2116,17 @@ html.light-mode .health-target-value { color: #1f2937; }
 .task-xp-badge {
     font-size: 0.75em;
     font-weight: 600;
-    color: #c084fc;
-    background: rgba(192, 132, 252, 0.12);
-    border: 1px solid rgba(192, 132, 252, 0.25);
+    color: var(--color-primary);
+    background: rgba(var(--color-primary-rgb), 0.12);
+    border: 1px solid rgba(var(--color-primary-rgb), 0.25);
     border-radius: 6px;
     padding: 2px 7px;
     white-space: nowrap;
     flex-shrink: 0;
 }
 
-html.light-mode .task-xp-input { color: #7c3aed; border-color: rgba(124,58,237,0.3); }
-html.light-mode .task-xp-badge { color: #7c3aed; background: rgba(124,58,237,0.08); border-color: rgba(124,58,237,0.25); }
+html.light-mode .task-xp-input { color: var(--color-primary-dark); border-color: rgba(124,58,237,0.3); }
+html.light-mode .task-xp-badge { color: var(--color-primary-dark); background: rgba(124,58,237,0.08); border-color: rgba(124,58,237,0.25); }
 
 /* ── XP Display ─────────────────────────────────────────────── */
 @keyframes xp-sweep {
@@ -2095,7 +2159,7 @@ html.light-mode .task-xp-badge { color: #7c3aed; background: rgba(124,58,237,0.0
 
 #xp-progress-fill {
     height: 100%;
-    background: linear-gradient(90deg, #c084fc, #00c9a7);
+    background: linear-gradient(90deg, var(--color-primary), var(--color-accent));
     border-radius: 99px;
     width: 0%;
     transition: width 0.4s ease;
@@ -2116,7 +2180,7 @@ html.light-mode #xp-progress-label { color: #6b7280; }
     font-weight: 700;
     font-size: 0.95rem;
     letter-spacing: 0.02em;
-    background: linear-gradient(90deg, #c084fc, #00c9a7, #c084fc);
+    background: linear-gradient(90deg, var(--color-primary), var(--color-accent), var(--color-primary));
     background-size: 200% 200%;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
@@ -2162,7 +2226,7 @@ html.light-mode #xp-progress-label { color: #6b7280; }
     flex-shrink: 0;
 }
 
-.xp-positive { color: #00c9a7; }
+.xp-positive { color: var(--color-accent); }
 .xp-negative { color: #f87171; }
 
 html.light-mode .xp-entry { border-bottom-color: rgba(0,0,0,0.06); }
@@ -2172,7 +2236,7 @@ html.light-mode .xp-entry-reason { color: #374151; }
 /* ── Daily Weight Log ───────────────────────────────────────── */
 .weight-checkin-card {
     background: linear-gradient(135deg, rgba(0, 201, 167, 0.06) 0%, transparent 70%);
-    border: 1px solid rgba(0, 201, 167, 0.2);
+    border: 1px solid rgba(var(--color-accent-rgb), 0.2);
     border-radius: 14px;
     padding: 20px 24px;
     margin-bottom: 20px;
@@ -2181,7 +2245,7 @@ html.light-mode .xp-entry-reason { color: #374151; }
 .weight-checkin-card h3 {
     font-size: 1em;
     font-weight: 500;
-    color: #00c9a7;
+    color: var(--color-accent);
     margin-bottom: 14px;
     text-shadow: none;
     text-transform: uppercase;
