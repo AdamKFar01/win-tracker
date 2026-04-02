@@ -851,46 +851,80 @@ h1 {
 }
 
 /* ── Finance ───────────────────────────────────────────────── */
-.finance-summary {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 16px;
-    margin-bottom: 24px;
+.finance-total-summary {
+    text-align: center;
+    margin-bottom: 28px;
 }
 
-.finance-card {
-    padding: 16px 32px;
+.finance-total-card {
+    display: inline-block;
+    padding: 22px 48px;
     border-radius: 15px;
     text-align: center;
+    background: linear-gradient(135deg, rgba(59, 7, 100, 0.35) 0%, transparent 70%);
+    border: 1.5px solid rgba(192, 132, 252, 0.5);
 }
 
-.finance-card.balance {
-    background: transparent;
-    border: 1px solid rgba(192, 132, 252, 0.3);
-}
-
-.finance-card.crypto {
-    background: transparent;
-    border: 1px solid rgba(0, 201, 167, 0.3);
-}
-
-.finance-card h3 {
+.finance-total-card h3 {
     font-size: 1em;
     font-weight: 400;
     margin-bottom: 10px;
     text-shadow: none;
     color: #c084fc;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
 }
 
-.finance-card.crypto h3   { color: #00c9a7; }
-.finance-card.crypto .amount { color: #00c9a7; }
+.finance-total-card .amount {
+    font-size: 2.8em;
+    font-weight: 400;
+    color: #c084fc;
+}
 
-.finance-card .amount {
-    font-size: 2em;
+/* Mini cards inside chart column */
+.finance-mini-cards {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 18px;
+}
+
+.finance-mini-card {
+    flex: 1;
+    padding: 10px 20px;
+    border-radius: 10px;
+    text-align: center;
+}
+
+.finance-mini-card.balance {
+    background: transparent;
+    border: 1px solid rgba(192, 132, 252, 0.3);
+}
+
+.finance-mini-card.crypto {
+    background: transparent;
+    border: 1px solid rgba(0, 201, 167, 0.3);
+}
+
+.finance-mini-card h3 {
+    font-size: 0.78em;
+    font-weight: 400;
+    margin-bottom: 6px;
+    text-shadow: none;
+    color: #c084fc;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+}
+
+.finance-mini-card.crypto h3     { color: #00c9a7; }
+.finance-mini-card.crypto .amount { color: #00c9a7; }
+
+.finance-mini-card .amount {
+    font-size: 1.4em;
     font-weight: 400;
     color: #e5e7eb;
 }
-.finance-card.balance .amount { color: #c084fc; }
+.finance-mini-card.balance .amount { color: #c084fc; }
 
 .finance-columns {
     display: grid;
@@ -1305,10 +1339,19 @@ html.light-mode .collapse-btn {
     color: #7c3aed;
     text-shadow: none;
 }
-html.light-mode .finance-card.balance .amount { color: #7c3aed; }
-html.light-mode .finance-card.crypto { border-color: rgba(0, 201, 167, 0.4); }
-html.light-mode .finance-card.crypto h3     { color: #0d9488; }
-html.light-mode .finance-card.crypto .amount { color: #0d9488; }
+html.light-mode .finance-total-card {
+    background: linear-gradient(135deg, rgba(192, 132, 252, 0.1) 0%, transparent 70%);
+    border-color: rgba(124, 58, 237, 0.4);
+}
+html.light-mode .finance-total-card h3     { color: #7c3aed; }
+html.light-mode .finance-total-card .amount { color: #7c3aed; }
+
+html.light-mode .finance-mini-card.balance { border-color: rgba(124, 58, 237, 0.3); }
+html.light-mode .finance-mini-card.balance .amount { color: #7c3aed; }
+html.light-mode .finance-mini-card.balance h3 { color: #7c3aed; }
+html.light-mode .finance-mini-card.crypto { border-color: rgba(0, 201, 167, 0.4); }
+html.light-mode .finance-mini-card.crypto h3     { color: #0d9488; }
+html.light-mode .finance-mini-card.crypto .amount { color: #0d9488; }
 html.light-mode .finance-col-chart h3 { color: #7c3aed; border-bottom-color: rgba(124, 58, 237, 0.14); }
 
 html.light-mode .daily-goals-card {

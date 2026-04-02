@@ -887,6 +887,7 @@ async function loadFinance() {
 
         document.getElementById('balance').textContent      = `£${currentBalance.toFixed(2)}`;
         document.getElementById('cryptoBalance').textContent = `£${currentCrypto.toFixed(2)}`;
+        document.getElementById('totalBalance').textContent  = `£${(currentBalance + currentCrypto).toFixed(2)}`;
         document.getElementById('brokeMessage').style.display =
             (currentBalance < 100000 || currentCrypto < 100000) ? 'block' : 'none';
 
