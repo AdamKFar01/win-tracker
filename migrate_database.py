@@ -184,6 +184,69 @@ if not table_exists('daily_goals'):
 else:
     print("   ✅ daily_goals table exists")
 
+# 7. Create health_metrics table
+print("📝 Checking health_metrics table...")
+if not table_exists('health_metrics'):
+    try:
+        c.execute('''CREATE TABLE health_metrics
+                     (id INTEGER PRIMARY KEY,
+                      weight_kg REAL DEFAULT 0,
+                      height_cm REAL DEFAULT 0,
+                      age INTEGER DEFAULT 0,
+                      sex TEXT DEFAULT 'male',
+                      exercise_intensity TEXT DEFAULT 'sedentary',
+                      calorie_target INTEGER DEFAULT 0,
+                      protein_target INTEGER DEFAULT 0,
+                      carb_target INTEGER DEFAULT 0,
+                      fat_target INTEGER DEFAULT 0)''')
+        c.execute('INSERT OR IGNORE INTO health_metrics (id) VALUES (1)')
+        conn.commit()
+        print("   ✅ Created health_metrics table")
+    except Exception as e:
+        print(f"   ⚠️  Warning: {e}")
+else:
+    print("   ✅ health_metrics table exists")
+
+# 8. Create food_log table
+print("📝 Checking food_log table...")
+if not table_exists('food_log'):
+    try:
+        c.execute('''CREATE TABLE food_log
+                     (id INTEGER PRIMARY KEY AUTOINCREMENT,
+                      date TEXT NOT NULL,
+                      meal TEXT NOT NULL,
+                      food_name TEXT NOT NULL,
+                      calories INTEGER DEFAULT 0,
+                      protein_g REAL DEFAULT 0,
+                      carbs_g REAL DEFAULT 0,
+                      fat_g REAL DEFAULT 0,
+                      created_at TEXT NOT NULL)''')
+        conn.commit()
+        print("   ✅ Created food_log table")
+    except Exception as e:
+        print(f"   ⚠️  Warning: {e}")
+else:
+    print("   ✅ food_log table exists")
+
+# 9. Create activity_log table
+print("📝 Checking activity_log table...")
+if not table_exists('activity_log'):
+    try:
+        c.execute('''CREATE TABLE activity_log
+                     (id INTEGER PRIMARY KEY AUTOINCREMENT,
+                      date TEXT NOT NULL,
+                      activity_type TEXT NOT NULL,
+                      duration_mins INTEGER DEFAULT 0,
+                      intensity TEXT DEFAULT 'moderate',
+                      calories_burned INTEGER DEFAULT 0,
+                      created_at TEXT NOT NULL)''')
+        conn.commit()
+        print("   ✅ Created activity_log table")
+    except Exception as e:
+        print(f"   ⚠️  Warning: {e}")
+else:
+    print("   ✅ activity_log table exists")
+
 conn.close()
 
 print()

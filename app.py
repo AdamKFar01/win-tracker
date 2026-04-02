@@ -95,6 +95,42 @@ def init_db():
                   mindset REAL DEFAULT 0)''')
     c.execute('INSERT OR IGNORE INTO pillar_scores (id) VALUES (1)')
 
+    # Health metrics table (one persistent row)
+    c.execute('''CREATE TABLE IF NOT EXISTS health_metrics
+                 (id INTEGER PRIMARY KEY,
+                  weight_kg REAL DEFAULT 0,
+                  height_cm REAL DEFAULT 0,
+                  age INTEGER DEFAULT 0,
+                  sex TEXT DEFAULT 'male',
+                  exercise_intensity TEXT DEFAULT 'sedentary',
+                  calorie_target INTEGER DEFAULT 0,
+                  protein_target INTEGER DEFAULT 0,
+                  carb_target INTEGER DEFAULT 0,
+                  fat_target INTEGER DEFAULT 0)''')
+    c.execute('INSERT OR IGNORE INTO health_metrics (id) VALUES (1)')
+
+    # Food log table
+    c.execute('''CREATE TABLE IF NOT EXISTS food_log
+                 (id INTEGER PRIMARY KEY AUTOINCREMENT,
+                  date TEXT NOT NULL,
+                  meal TEXT NOT NULL,
+                  food_name TEXT NOT NULL,
+                  calories INTEGER DEFAULT 0,
+                  protein_g REAL DEFAULT 0,
+                  carbs_g REAL DEFAULT 0,
+                  fat_g REAL DEFAULT 0,
+                  created_at TEXT NOT NULL)''')
+
+    # Activity log table
+    c.execute('''CREATE TABLE IF NOT EXISTS activity_log
+                 (id INTEGER PRIMARY KEY AUTOINCREMENT,
+                  date TEXT NOT NULL,
+                  activity_type TEXT NOT NULL,
+                  duration_mins INTEGER DEFAULT 0,
+                  intensity TEXT DEFAULT 'moderate',
+                  calories_burned INTEGER DEFAULT 0,
+                  created_at TEXT NOT NULL)''')
+
     # Daily goals table
     c.execute('''CREATE TABLE IF NOT EXISTS daily_goals
                  (id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -598,6 +634,112 @@ def pillar_scores_api():
         return jsonify({'physical': row[0], 'work': row[1], 'health': row[2],
                         'relationships': row[3], 'mindset': row[4]})
     return jsonify({'physical': 0, 'work': 0, 'health': 0, 'relationships': 0, 'mindset': 0})
+
+
+@app.route('/api/health-metrics', methods=['GET', 'POST'])
+def health_metrics_api():
+    conn = sqlite3.connect(DB_PATH)
+    c = conn.cursor()
+
+    if request.method == 'POST':
+        data = request.json
+        c.execute('''INSERT OR REPLACE INTO health_metrics
+                     (id, weight_kg, height_cm, age, sex, exercise_intensity,
+                      calorie_target, protein_target, carb_target, fat_target)
+                     VALUES (1, ?, ?, ?, ?, ?, ?, ?, ?, ?)''',
+                  (data.get('weight_kg', 0), data.get('height_cm', 0),
+                   data.get('age', 0), data.get('sex', 'male'),
+                   data.get('exercise_intensity', 'sedentary'),
+                   data.get('calorie_target', 0), data.get('protein_target', 0),
+                   data.get('carb_target', 0), data.get('fat_target', 0)))
+        conn.commit()
+        conn.close()
+        return jsonify({'success': True})
+
+    c.execute('SELECT * FROM health_metrics WHERE id = 1')
+    row = c.fetchone()
+    conn.close()
+    if row:
+        return jsonify({
+            'weight_kg': row[1], 'height_cm': row[2], 'age': row[3],
+            'sex': row[4], 'exercise_intensity': row[5],
+            'calorie_target': row[6], 'protein_target': row[7],
+            'carb_target': row[8], 'fat_target': row[9]
+        })
+    return jsonify({
+        'weight_kg': 0, 'height_cm': 0, 'age': 0, 'sex': 'male',
+        'exercise_intensity': 'sedentary',
+        'calorie_target': 0, 'protein_target': 0, 'carb_target': 0, 'fat_target': 0
+    })
+
+
+@app.route('/api/food-log', methods=['GET', 'POST', 'DELETE'])
+def food_log_api():
+    conn = sqlite3.connect(DB_PATH)
+    c = conn.cursor()
+
+    if request.method == 'POST':
+        data = request.json
+        c.execute('''INSERT INTO food_log
+                     (date, meal, food_name, calories, protein_g, carbs_g, fat_g, created_at)
+                     VALUES (?, ?, ?, ?, ?, ?, ?, ?)''',
+                  (data['date'], data['meal'], data['food_name'],
+                   data.get('calories', 0), data.get('protein_g', 0),
+                   data.get('carbs_g', 0), data.get('fat_g', 0),
+                   datetime.now().isoformat()))
+        conn.commit()
+        conn.close()
+        return jsonify({'success': True})
+
+    if request.method == 'DELETE':
+        entry_id = request.args.get('id')
+        c.execute('DELETE FROM food_log WHERE id = ?', (entry_id,))
+        conn.commit()
+        conn.close()
+        return jsonify({'success': True})
+
+    date = request.args.get('date', datetime.now().strftime('%Y-%m-%d'))
+    c.execute('SELECT * FROM food_log WHERE date = ? ORDER BY meal, created_at', (date,))
+    rows = c.fetchall()
+    conn.close()
+    return jsonify([{
+        'id': r[0], 'date': r[1], 'meal': r[2], 'food_name': r[3],
+        'calories': r[4], 'protein_g': r[5], 'carbs_g': r[6], 'fat_g': r[7]
+    } for r in rows])
+
+
+@app.route('/api/activity-log', methods=['GET', 'POST', 'DELETE'])
+def activity_log_api():
+    conn = sqlite3.connect(DB_PATH)
+    c = conn.cursor()
+
+    if request.method == 'POST':
+        data = request.json
+        c.execute('''INSERT INTO activity_log
+                     (date, activity_type, duration_mins, intensity, calories_burned, created_at)
+                     VALUES (?, ?, ?, ?, ?, ?)''',
+                  (data['date'], data['activity_type'], data.get('duration_mins', 0),
+                   data.get('intensity', 'moderate'), data.get('calories_burned', 0),
+                   datetime.now().isoformat()))
+        conn.commit()
+        conn.close()
+        return jsonify({'success': True})
+
+    if request.method == 'DELETE':
+        entry_id = request.args.get('id')
+        c.execute('DELETE FROM activity_log WHERE id = ?', (entry_id,))
+        conn.commit()
+        conn.close()
+        return jsonify({'success': True})
+
+    date = request.args.get('date', datetime.now().strftime('%Y-%m-%d'))
+    c.execute('SELECT * FROM activity_log WHERE date = ? ORDER BY created_at', (date,))
+    rows = c.fetchall()
+    conn.close()
+    return jsonify([{
+        'id': r[0], 'date': r[1], 'activity_type': r[2],
+        'duration_mins': r[3], 'intensity': r[4], 'calories_burned': r[5]
+    } for r in rows])
 
 
 if __name__ == '__main__':

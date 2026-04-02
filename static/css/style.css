@@ -1542,3 +1542,428 @@ html.light-mode .dashboard-right {
     background: linear-gradient(135deg, rgba(192, 132, 252, 0.08) 0%, transparent 70%);
     border-color: rgba(124, 58, 237, 0.18);
 }
+
+/* ── Health Tab ─────────────────────────────────────────────── */
+.health-metrics-card,
+.health-activity-card {
+    background: linear-gradient(135deg, rgba(59, 7, 100, 0.3) 0%, transparent 70%);
+    border: 1px solid rgba(192, 132, 252, 0.2);
+    border-radius: 8px;
+    padding: 25px;
+    margin-bottom: 24px;
+}
+
+.health-section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 14px;
+    margin-bottom: 18px;
+    border-bottom: 1px solid rgba(192, 132, 252, 0.15);
+}
+
+.health-section-header h3,
+.health-activity-card h3 {
+    font-size: 1em;
+    font-weight: 400;
+    color: #c084fc;
+    text-shadow: none;
+    margin: 0;
+}
+
+.health-activity-card h3 {
+    padding-bottom: 14px;
+    margin-bottom: 18px;
+    border-bottom: 1px solid rgba(192, 132, 252, 0.15);
+}
+
+/* Targets row */
+.health-targets-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+    margin-bottom: 20px;
+}
+
+.health-target-box {
+    flex: 1;
+    min-width: 100px;
+    padding: 14px 18px;
+    border-radius: 10px;
+    text-align: center;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.calories-box { border-color: rgba(192, 132, 252, 0.35); }
+.protein-box  { border-color: rgba(0, 201, 167, 0.35); }
+.carbs-box    { border-color: rgba(245, 158, 11, 0.35); }
+.fat-box      { border-color: rgba(251, 113, 133, 0.35); }
+
+.health-target-label {
+    font-size: 0.78em;
+    color: #8b92b0;
+    margin-bottom: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+}
+
+.health-target-value {
+    font-size: 1.7em;
+    font-weight: 400;
+    color: #e5e7eb;
+}
+
+.calories-box .health-target-value { color: #c084fc; }
+.protein-box  .health-target-value { color: #00c9a7; }
+.carbs-box    .health-target-value { color: #f59e0b; }
+.fat-box      .health-target-value { color: #fb7185; }
+
+.health-target-unit {
+    font-size: 0.78em;
+    color: #6b7280;
+    margin-top: 2px;
+}
+
+/* Metrics form */
+.health-metrics-form { margin-top: 4px; }
+
+.health-form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 16px;
+    margin-bottom: 16px;
+}
+
+/* Date bar */
+.health-date-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+}
+
+.health-date-bar h3 {
+    font-size: 1em;
+    font-weight: 400;
+    color: #c084fc;
+    text-shadow: none;
+    margin: 0;
+}
+
+.health-date-bar input[type="date"] {
+    background: transparent;
+    border: 1px solid rgba(192, 132, 252, 0.3);
+    border-radius: 6px;
+    color: #8b92b0;
+    padding: 4px 8px;
+    font-size: 0.85em;
+    font-family: inherit;
+}
+
+/* Food log two-column layout */
+.health-food-columns {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    margin-bottom: 24px;
+    align-items: start;
+}
+
+/* Meal sections */
+.health-meal-section {
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(192, 132, 252, 0.15);
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 14px;
+}
+
+.health-meal-section:last-child { margin-bottom: 0; }
+
+.health-meal-title {
+    font-size: 0.9em;
+    font-weight: 400;
+    color: #c084fc;
+    text-shadow: none;
+    margin: 0 0 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+}
+
+.health-add-food-form {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 10px;
+}
+
+.food-name-input {
+    width: 100%;
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid rgba(192, 132, 252, 0.25);
+    color: #e5e7eb;
+    padding: 4px 0;
+    font-size: 0.9em;
+    font-family: inherit;
+    outline: none;
+    box-sizing: border-box;
+}
+
+.food-name-input:focus { border-bottom-color: #c084fc; }
+
+.food-macros-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 6px;
+}
+
+.food-macro-input {
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 5px;
+    color: #e5e7eb;
+    padding: 4px 6px;
+    font-size: 0.82em;
+    font-family: inherit;
+    width: 100%;
+    box-sizing: border-box;
+    outline: none;
+    text-align: center;
+}
+
+.food-macro-input:focus { border-color: rgba(192, 132, 252, 0.4); }
+
+.btn-sm {
+    padding: 6px 14px;
+    font-size: 0.82em;
+    align-self: flex-start;
+}
+
+.health-food-list { display: flex; flex-direction: column; gap: 6px; }
+
+.health-food-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 10px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 6px;
+    border-left: 3px solid rgba(192, 132, 252, 0.4);
+}
+
+.health-food-item-info { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0; }
+.health-food-name      { font-size: 0.88em; color: #e5e7eb; }
+.health-food-macros    { font-size: 0.75em; color: #6b7280; }
+
+.health-empty { color: #6b7280; font-size: 0.85em; text-align: center; padding: 8px 0; margin: 0; }
+
+/* Right summary panel */
+.health-summary-right {
+    background: linear-gradient(135deg, rgba(59, 7, 100, 0.3) 0%, transparent 70%);
+    border: 1px solid rgba(192, 132, 252, 0.2);
+    border-radius: 8px;
+    padding: 22px;
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
+}
+
+.health-summary-right h3 {
+    font-size: 1em;
+    font-weight: 400;
+    color: #c084fc;
+    text-shadow: none;
+    margin: 0 0 4px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid rgba(192, 132, 252, 0.15);
+}
+
+.health-summary-block { display: flex; flex-direction: column; gap: 8px; }
+
+.health-summary-label {
+    font-size: 0.82em;
+    color: #8b92b0;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+/* Calories progress bar */
+.calories-bar-wrap {
+    height: 10px;
+    background: rgba(255, 255, 255, 0.06);
+    border-radius: 5px;
+    overflow: hidden;
+}
+
+.calories-bar-fill {
+    height: 100%;
+    background: #00c9a7;
+    border-radius: 5px;
+    transition: width 0.4s ease, background 0.3s ease;
+}
+
+/* Macro doughnut */
+.health-macro-chart-wrap {
+    max-width: 140px;
+    margin: 0 auto;
+}
+
+.health-macro-legend {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.macro-legend-item { font-size: 0.78em; color: #8b92b0; }
+.carbs-legend   b  { color: #c084fc; }
+.protein-legend b  { color: #00c9a7; }
+.fat-legend     b  { color: #f59e0b; }
+
+/* Water tracker */
+.water-tracker {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-top: 4px;
+}
+
+.water-glass {
+    font-size: 1.4em;
+    cursor: pointer;
+    opacity: 0.25;
+    transition: opacity 0.15s, transform 0.15s;
+    user-select: none;
+}
+
+.water-glass.full  { opacity: 1; }
+.water-glass:hover { transform: scale(1.15); }
+
+.water-count-label {
+    font-size: 0.8em;
+    color: #6b7280;
+    margin-top: 4px;
+}
+
+/* Activity log */
+.health-activity-form { margin-bottom: 20px; }
+
+.health-activity-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 16px;
+}
+
+.health-activity-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 14px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 8px;
+    border-left: 4px solid #00c9a7;
+}
+
+.activity-item-info   { flex: 1; display: flex; flex-direction: column; gap: 2px; }
+.activity-item-name   { font-size: 0.92em; color: #e5e7eb; }
+.activity-item-detail { font-size: 0.8em; color: #6b7280; }
+.activity-item-burned { font-size: 0.92em; color: #00c9a7; white-space: nowrap; }
+
+/* Net calories box */
+.net-calories-box {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    padding: 14px 20px;
+    border-radius: 8px;
+    border: 1px solid rgba(192, 132, 252, 0.25);
+    background: rgba(192, 132, 252, 0.05);
+    flex-wrap: wrap;
+}
+
+.net-calories-box.net-over  { border-color: rgba(239, 68, 68, 0.35); background: rgba(239, 68, 68, 0.05); }
+.net-calories-box.net-under { border-color: rgba(0, 201, 167, 0.3);  background: rgba(0, 201, 167, 0.04); }
+
+.net-cal-label  { font-size: 0.85em; color: #8b92b0; text-transform: uppercase; letter-spacing: 0.05em; }
+.net-cal-value  { font-size: 1.4em; font-weight: 400; color: #e5e7eb; }
+.net-cal-target { font-size: 0.82em; color: #6b7280; }
+
+.net-calories-box.net-over  .net-cal-value { color: #ef4444; }
+.net-calories-box.net-under .net-cal-value { color: #00c9a7; }
+
+/* ── Health light-mode ──────────────────────────────────────── */
+html.light-mode .health-metrics-card,
+html.light-mode .health-activity-card {
+    background: linear-gradient(135deg, rgba(192, 132, 252, 0.08) 0%, transparent 70%);
+    border-color: rgba(124, 58, 237, 0.18);
+}
+
+html.light-mode .health-section-header,
+html.light-mode .health-activity-card h3 { border-bottom-color: rgba(124, 58, 237, 0.14); }
+
+html.light-mode .health-section-header h3,
+html.light-mode .health-activity-card h3,
+html.light-mode .health-meal-title,
+html.light-mode .health-date-bar h3,
+html.light-mode .health-summary-right h3 { color: #7c3aed; }
+
+html.light-mode .health-date-bar input[type="date"] { color: #6b7280; border-color: rgba(124, 58, 237, 0.25); }
+
+html.light-mode .health-meal-section {
+    background: rgba(0, 0, 0, 0.02);
+    border-color: rgba(124, 58, 237, 0.14);
+}
+
+html.light-mode .food-name-input { color: #1f2937; border-bottom-color: rgba(124, 58, 237, 0.2); }
+html.light-mode .food-name-input:focus { border-bottom-color: #7c3aed; }
+html.light-mode .food-macro-input { color: #1f2937; border-color: rgba(0, 0, 0, 0.1); }
+html.light-mode .food-macro-input:focus { border-color: rgba(124, 58, 237, 0.35); }
+
+html.light-mode .health-food-item {
+    background: rgba(255, 255, 255, 0.7);
+    border-color: rgba(0, 0, 0, 0.08);
+    border-left-color: rgba(124, 58, 237, 0.4);
+}
+
+html.light-mode .health-food-name   { color: #1f2937; }
+html.light-mode .health-food-macros { color: #9ca3af; }
+
+html.light-mode .health-summary-right {
+    background: linear-gradient(135deg, rgba(192, 132, 252, 0.08) 0%, transparent 70%);
+    border-color: rgba(124, 58, 237, 0.18);
+}
+
+html.light-mode .health-summary-right h3 { border-bottom-color: rgba(124, 58, 237, 0.14); }
+
+html.light-mode .calories-bar-wrap { background: rgba(0, 0, 0, 0.07); }
+
+html.light-mode .health-activity-item {
+    background: rgba(255, 255, 255, 0.7);
+    border-color: rgba(0, 0, 0, 0.08);
+}
+
+html.light-mode .activity-item-name { color: #1f2937; }
+
+html.light-mode .net-calories-box {
+    border-color: rgba(124, 58, 237, 0.2);
+    background: rgba(124, 58, 237, 0.04);
+}
+html.light-mode .net-calories-box.net-over  { border-color: rgba(239, 68, 68, 0.3); background: rgba(239, 68, 68, 0.04); }
+html.light-mode .net-calories-box.net-under { border-color: rgba(0, 201, 167, 0.3); background: rgba(0, 201, 167, 0.04); }
+
+html.light-mode .calories-box { border-color: rgba(124, 58, 237, 0.3); }
+html.light-mode .calories-box .health-target-value { color: #7c3aed; }
+html.light-mode .health-target-value { color: #1f2937; }
+
+/* ── Health responsive ──────────────────────────────────────── */
+@media (max-width: 900px) {
+    .health-food-columns { grid-template-columns: 1fr; }
+    .health-form-grid    { grid-template-columns: 1fr 1fr; }
+}

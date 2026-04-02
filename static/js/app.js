@@ -1472,6 +1472,345 @@ document.getElementById('dailyGoalsDate').addEventListener('change', (e) => {
     loadDailyGoals(e.target.value);
 });
 
+// ── Health ─────────────────────────────────────────────────────
+
+const MET_VALUES = {
+    running:       { light: 7,   moderate: 9,   intense: 12  },
+    cycling:       { light: 4,   moderate: 6,   intense: 10  },
+    swimming:      { light: 5,   moderate: 7,   intense: 10  },
+    walking:       { light: 2.5, moderate: 3.5, intense: 4.5 },
+    weightlifting: { light: 3,   moderate: 5,   intense: 6   },
+    yoga:          { light: 2.5, moderate: 3,   intense: 4   },
+    football:      { light: 6,   moderate: 8,   intense: 10  },
+    basketball:    { light: 6,   moderate: 8,   intense: 10  },
+    tennis:        { light: 5,   moderate: 7,   intense: 9   },
+    other:         { light: 4,   moderate: 6,   intense: 8   }
+};
+
+const ACTIVITY_MULTIPLIERS = {
+    sedentary:          1.2,
+    lightly_active:     1.375,
+    moderately_active:  1.55,
+    very_active:        1.725,
+    athlete:            1.9
+};
+
+let macroChartInstance = null;
+let healthMetricsCache = { weight_kg: 70, calorie_target: 0, protein_target: 0, carb_target: 0, fat_target: 0 };
+
+function toggleMetricsForm() {
+    const form = document.getElementById('healthMetricsForm');
+    form.style.display = form.style.display === 'none' ? 'block' : 'none';
+}
+
+async function loadHealthMetrics() {
+    try {
+        const res = await fetch('/api/health-metrics');
+        const data = await res.json();
+        healthMetricsCache = data;
+
+        // Populate form
+        document.getElementById('hmWeight').value    = data.weight_kg    || '';
+        document.getElementById('hmHeight').value    = data.height_cm    || '';
+        document.getElementById('hmAge').value       = data.age          || '';
+        document.getElementById('hmSex').value       = data.sex          || 'male';
+        document.getElementById('hmIntensity').value = data.exercise_intensity || 'sedentary';
+
+        // Show targets if set
+        if (data.calorie_target > 0) {
+            document.getElementById('targetCalories').textContent = data.calorie_target;
+            document.getElementById('targetProtein').textContent  = data.protein_target;
+            document.getElementById('targetCarbs').textContent    = data.carb_target;
+            document.getElementById('targetFat').textContent      = data.fat_target;
+            document.getElementById('healthTargetsRow').style.display = 'flex';
+            document.getElementById('healthMetricsForm').style.display = 'none';
+        } else {
+            document.getElementById('healthMetricsForm').style.display = 'block';
+        }
+        updateFoodSummary();
+    } catch (err) {
+        console.error('Error loading health metrics:', err);
+    }
+}
+
+document.getElementById('healthMetricsForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const weight   = parseFloat(document.getElementById('hmWeight').value);
+    const height   = parseFloat(document.getElementById('hmHeight').value);
+    const age      = parseInt(document.getElementById('hmAge').value);
+    const sex      = document.getElementById('hmSex').value;
+    const intensity = document.getElementById('hmIntensity').value;
+
+    // Mifflin-St Jeor BMR
+    const bmr = sex === 'male'
+        ? (10 * weight) + (6.25 * height) - (5 * age) + 5
+        : (10 * weight) + (6.25 * height) - (5 * age) - 161;
+
+    const tdee           = Math.round(bmr * ACTIVITY_MULTIPLIERS[intensity]);
+    const protein_target = Math.round(weight * 2);
+    const carb_target    = Math.round((tdee * 0.40) / 4);
+    const fat_target     = Math.round((tdee * 0.30) / 9);
+
+    try {
+        await fetch('/api/health-metrics', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                weight_kg: weight, height_cm: height, age, sex,
+                exercise_intensity: intensity,
+                calorie_target: tdee, protein_target, carb_target, fat_target
+            })
+        });
+        loadHealthMetrics();
+    } catch (err) {
+        console.error('Error saving health metrics:', err);
+    }
+});
+
+// Food log
+async function loadFoodLog(dateStr) {
+    try {
+        const res = await fetch(`/api/food-log?date=${dateStr}`);
+        const entries = await res.json();
+
+        const today = getLocalDateString();
+        document.getElementById('healthDateLabel').textContent =
+            dateStr === today ? "Today's Log" : `Log for ${dateStr}`;
+
+        ['breakfast', 'lunch', 'dinner', 'snacks'].forEach(meal => {
+            const list = document.getElementById(`list${meal.charAt(0).toUpperCase() + meal.slice(1)}`);
+            list.innerHTML = '';
+            const mealEntries = entries.filter(e => e.meal === meal);
+            if (mealEntries.length === 0) {
+                list.innerHTML = '<p class="health-empty">No entries yet.</p>';
+                return;
+            }
+            mealEntries.forEach(entry => {
+                const row = document.createElement('div');
+                row.className = 'health-food-item';
+                row.innerHTML = `
+                    <div class="health-food-item-info">
+                        <span class="health-food-name">${entry.food_name}</span>
+                        <span class="health-food-macros">${entry.calories} kcal &nbsp;|&nbsp; P: ${entry.protein_g}g &nbsp;|&nbsp; C: ${entry.carbs_g}g &nbsp;|&nbsp; F: ${entry.fat_g}g</span>
+                    </div>
+                    <button class="task-item-delete" onclick="deleteFoodEntry(${entry.id})">Delete</button>
+                `;
+                list.appendChild(row);
+            });
+        });
+        updateFoodSummary(entries);
+    } catch (err) {
+        console.error('Error loading food log:', err);
+    }
+}
+
+async function addFoodEntry(meal) {
+    const cap   = meal.charAt(0).toUpperCase() + meal.slice(1);
+    const name  = document.getElementById(`foodName${cap}`).value.trim();
+    if (!name) return;
+    const cal   = parseFloat(document.getElementById(`foodCal${cap}`).value)  || 0;
+    const prot  = parseFloat(document.getElementById(`foodProt${cap}`).value) || 0;
+    const carb  = parseFloat(document.getElementById(`foodCarb${cap}`).value) || 0;
+    const fat   = parseFloat(document.getElementById(`foodFat${cap}`).value)  || 0;
+    const date  = document.getElementById('healthDate').value;
+
+    try {
+        await fetch('/api/food-log', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ date, meal, food_name: name, calories: cal, protein_g: prot, carbs_g: carb, fat_g: fat })
+        });
+        // Clear inputs
+        ['foodName', 'foodCal', 'foodProt', 'foodCarb', 'foodFat'].forEach(prefix => {
+            document.getElementById(`${prefix}${cap}`).value = '';
+        });
+        loadFoodLog(date);
+        loadActivityLog(date);
+    } catch (err) {
+        console.error('Error adding food entry:', err);
+    }
+}
+
+async function deleteFoodEntry(id) {
+    const date = document.getElementById('healthDate').value;
+    try {
+        await fetch(`/api/food-log?id=${id}`, { method: 'DELETE' });
+        loadFoodLog(date);
+        loadActivityLog(date);
+    } catch (err) {
+        console.error('Error deleting food entry:', err);
+    }
+}
+
+async function updateFoodSummary(entries) {
+    if (!entries) {
+        const date = document.getElementById('healthDate').value;
+        try {
+            const res = await fetch(`/api/food-log?date=${date}`);
+            entries = await res.json();
+        } catch { entries = []; }
+    }
+
+    let totalCal = 0, totalProt = 0, totalCarb = 0, totalFat = 0;
+    entries.forEach(e => {
+        totalCal  += e.calories  || 0;
+        totalProt += e.protein_g || 0;
+        totalCarb += e.carbs_g   || 0;
+        totalFat  += e.fat_g     || 0;
+    });
+
+    const target = healthMetricsCache.calorie_target || 0;
+    const pct    = target > 0 ? Math.min((totalCal / target) * 100, 100) : 0;
+    const over   = target > 0 && totalCal > target;
+
+    document.getElementById('summaryCalConsumed').textContent = Math.round(totalCal);
+    document.getElementById('summaryCalTarget').textContent   = target > 0 ? target : '—';
+    document.getElementById('summaryProtein').textContent     = totalProt.toFixed(1);
+    document.getElementById('summaryCarbs').textContent       = totalCarb.toFixed(1);
+    document.getElementById('summaryFat').textContent         = totalFat.toFixed(1);
+
+    const bar = document.getElementById('caloriesBarFill');
+    bar.style.width = pct + '%';
+    bar.style.background = over ? '#ef4444' : '#00c9a7';
+
+    // Macro doughnut
+    const ctx = document.getElementById('macroChart').getContext('2d');
+    if (macroChartInstance) macroChartInstance.destroy();
+    const hasData = totalProt + totalCarb + totalFat > 0;
+    macroChartInstance = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Carbs', 'Protein', 'Fat'],
+            datasets: [{
+                data: hasData ? [totalCarb, totalProt, totalFat] : [1, 1, 1],
+                backgroundColor: hasData
+                    ? ['#c084fc', '#00c9a7', '#f59e0b']
+                    : ['rgba(255,255,255,0.08)', 'rgba(255,255,255,0.08)', 'rgba(255,255,255,0.08)'],
+                borderWidth: 0
+            }]
+        },
+        options: {
+            responsive: true,
+            cutout: '65%',
+            plugins: { legend: { display: false } }
+        }
+    });
+}
+
+// Water tracker
+function loadWater(dateStr) {
+    const glasses = parseInt(localStorage.getItem(`water_${dateStr}`)) || 0;
+    renderWater(dateStr, glasses);
+}
+
+function setWater(dateStr, glasses) {
+    localStorage.setItem(`water_${dateStr}`, glasses);
+    renderWater(dateStr, glasses);
+}
+
+function renderWater(dateStr, glasses) {
+    document.getElementById('waterCount').textContent = glasses;
+    const tracker = document.getElementById('waterTracker');
+    tracker.innerHTML = '';
+    for (let i = 1; i <= 8; i++) {
+        const glass = document.createElement('span');
+        glass.className = 'water-glass' + (i <= glasses ? ' full' : '');
+        glass.textContent = '🥛';
+        glass.title = `${i} glass${i > 1 ? 'es' : ''}`;
+        glass.onclick = () => setWater(dateStr, i === glasses ? i - 1 : i);
+        tracker.appendChild(glass);
+    }
+}
+
+// Activity log
+async function loadActivityLog(dateStr) {
+    try {
+        const [actRes, foodRes] = await Promise.all([
+            fetch(`/api/activity-log?date=${dateStr}`),
+            fetch(`/api/food-log?date=${dateStr}`)
+        ]);
+        const activities = await actRes.json();
+        const foods      = await foodRes.json();
+
+        const list = document.getElementById('activityList');
+        list.innerHTML = '';
+        if (activities.length === 0) {
+            list.innerHTML = '<p class="health-empty">No activities logged.</p>';
+        } else {
+            activities.forEach(a => {
+                const row = document.createElement('div');
+                row.className = 'health-activity-item';
+                const label = a.activity_type.charAt(0).toUpperCase() + a.activity_type.slice(1);
+                row.innerHTML = `
+                    <div class="activity-item-info">
+                        <span class="activity-item-name">${label}</span>
+                        <span class="activity-item-detail">${a.duration_mins} min &nbsp;·&nbsp; ${a.intensity}</span>
+                    </div>
+                    <span class="activity-item-burned">−${a.calories_burned} kcal</span>
+                    <button class="task-item-delete" onclick="deleteActivityLog(${a.id})">Delete</button>
+                `;
+                list.appendChild(row);
+            });
+        }
+
+        // Net calories
+        const consumed = foods.reduce((s, f)  => s + (f.calories || 0), 0);
+        const burned   = activities.reduce((s, a) => s + (a.calories_burned || 0), 0);
+        const net      = consumed - burned;
+        const target   = healthMetricsCache.calorie_target || 0;
+
+        document.getElementById('netCaloriesValue').textContent = `${net > 0 ? '+' : ''}${Math.round(net)} kcal`;
+        document.getElementById('netCaloriesTarget').textContent =
+            target > 0 ? `Target: ${target} kcal` : '';
+        const netBox = document.getElementById('netCaloriesBox');
+        netBox.classList.toggle('net-over',  net > target && target > 0);
+        netBox.classList.toggle('net-under', net <= target || target === 0);
+    } catch (err) {
+        console.error('Error loading activity log:', err);
+    }
+}
+
+document.getElementById('activityLogForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const type      = document.getElementById('activityType').value;
+    const duration  = parseInt(document.getElementById('activityDuration').value) || 0;
+    const intensity = document.getElementById('activityIntensity').value;
+    const date      = document.getElementById('healthDate').value;
+    const weight    = healthMetricsCache.weight_kg || 70;
+
+    const met            = (MET_VALUES[type] || MET_VALUES.other)[intensity];
+    const calories_burned = Math.round(met * weight * (duration / 60));
+
+    try {
+        await fetch('/api/activity-log', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ date, activity_type: type, duration_mins: duration, intensity, calories_burned })
+        });
+        document.getElementById('activityDuration').value = '';
+        loadActivityLog(date);
+    } catch (err) {
+        console.error('Error logging activity:', err);
+    }
+});
+
+async function deleteActivityLog(id) {
+    const date = document.getElementById('healthDate').value;
+    try {
+        await fetch(`/api/activity-log?id=${id}`, { method: 'DELETE' });
+        loadActivityLog(date);
+    } catch (err) {
+        console.error('Error deleting activity:', err);
+    }
+}
+
+document.getElementById('healthDate').addEventListener('change', (e) => {
+    const dateStr = e.target.value;
+    loadFoodLog(dateStr);
+    loadActivityLog(dateStr);
+    loadWater(dateStr);
+});
+
 async function initializeApp() {
     await loadActivitiesFromDatabase();
     await loadCalendarEvents();
@@ -1488,6 +1827,11 @@ async function initializeApp() {
     loadFinance();
     setupReminderForms();
     loadAllReminders();
+    document.getElementById('healthDate').value = getLocalDateString();
+    loadHealthMetrics();
+    loadFoodLog(getLocalDateString());
+    loadActivityLog(getLocalDateString());
+    loadWater(getLocalDateString());
 }
 
 initializeApp();
