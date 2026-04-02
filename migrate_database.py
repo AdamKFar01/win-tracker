@@ -282,6 +282,22 @@ if not table_exists('user_stats'):
 else:
     print("   ✅ user_stats table exists")
 
+# 13. Create weight_log table
+print("📝 Checking weight_log table...")
+if not table_exists('weight_log'):
+    try:
+        c.execute('''CREATE TABLE weight_log
+                     (id INTEGER PRIMARY KEY AUTOINCREMENT,
+                      date TEXT NOT NULL UNIQUE,
+                      weight_kg REAL NOT NULL,
+                      created_at TEXT NOT NULL)''')
+        conn.commit()
+        print("   ✅ Created weight_log table")
+    except Exception as e:
+        print(f"   ⚠️  Warning: {e}")
+else:
+    print("   ✅ weight_log table exists")
+
 # 12. Add xp_reward column to tasks
 print("📝 Checking tasks.xp_reward column...")
 if not column_exists('tasks', 'xp_reward'):

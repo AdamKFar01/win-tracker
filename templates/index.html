@@ -12,7 +12,13 @@
     <div class="container">
         <header>
             <h1>WinnersTrack</h1>
-            <div id="xp-display"></div>
+            <div class="xp-header-block">
+                <div id="xp-display"></div>
+                <div class="xp-progress-wrap">
+                    <div class="xp-progress-track"><div id="xp-progress-fill"></div></div>
+                    <span id="xp-progress-label"></span>
+                </div>
+            </div>
             <div style="display:flex;align-items:center;gap:12px;">
                 <button id="themeToggle" class="theme-toggle" title="Toggle light/dark mode">☀</button>
                 <div class="date-selector">
@@ -341,6 +347,7 @@
                     <div class="add-task-section">
                         <form id="weeklyGoalForm">
                             <input type="text" class="task-input" placeholder="Add a weekly goal..." required>
+                            <input type="number" class="task-xp-input" placeholder="XP" min="0">
                             <button type="submit" class="btn-primary">Add</button>
                         </form>
                     </div>
@@ -358,6 +365,7 @@
                     <div class="add-task-section">
                         <form id="monthlyGoalForm">
                             <input type="text" class="task-input" placeholder="Add a monthly goal..." required>
+                            <input type="number" class="task-xp-input" placeholder="XP" min="0">
                             <button type="submit" class="btn-primary">Add</button>
                         </form>
                     </div>
@@ -375,6 +383,7 @@
                     <div class="add-task-section">
                         <form id="yearlyGoalForm">
                             <input type="text" class="task-input" placeholder="Add a yearly goal..." required>
+                            <input type="number" class="task-xp-input" placeholder="XP" min="0">
                             <button type="submit" class="btn-primary">Add</button>
                         </form>
                     </div>
@@ -392,6 +401,7 @@
                     <div class="add-task-section">
                         <form id="lifelongGoalForm">
                             <input type="text" class="task-input" placeholder="Add a lifelong goal..." required>
+                            <input type="number" class="task-xp-input" placeholder="XP" min="0">
                             <button type="submit" class="btn-primary">Add</button>
                         </form>
                     </div>
@@ -535,6 +545,19 @@
         <!-- Health Tab -->
         <div class="tab-content" id="health">
             <h2>Health</h2>
+
+            <!-- Daily Weight Check-in -->
+            <div class="weight-checkin-card">
+                <h3>Daily Weight</h3>
+                <div class="weight-form-row">
+                    <input type="date" id="weightDate">
+                    <input type="number" id="weightKg" step="0.1" min="1" placeholder="kg">
+                    <button class="btn-teal" onclick="saveWeightEntry()">Log</button>
+                </div>
+                <div class="weight-chart-container">
+                    <canvas id="weightChart"></canvas>
+                </div>
+            </div>
 
             <!-- Section 1: Body Metrics & Goals -->
             <div class="health-metrics-card">

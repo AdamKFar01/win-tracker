@@ -142,6 +142,13 @@ def init_db():
                   goal_3_text TEXT DEFAULT '',
                   goal_3_complete INTEGER DEFAULT 0)''')
 
+    # Weight log table (one entry per date)
+    c.execute('''CREATE TABLE IF NOT EXISTS weight_log
+                 (id INTEGER PRIMARY KEY AUTOINCREMENT,
+                  date TEXT NOT NULL UNIQUE,
+                  weight_kg REAL NOT NULL,
+                  created_at TEXT NOT NULL)''')
+
     # XP log table
     c.execute('''CREATE TABLE IF NOT EXISTS xp_log
                  (id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -386,17 +393,23 @@ def tasks():
         elif not due_date and period == 'monthly':
             due_date = (datetime.now() + timedelta(days=30)).strftime('%Y-%m-%d')
         
-        c.execute('''INSERT INTO tasks (task, task_type, period, due_date, created_at)
-                     VALUES (?, ?, ?, ?, ?)''',
-                  (data['task'], task_type, period, due_date, datetime.now().isoformat()))
+        c.execute('''INSERT INTO tasks (task, task_type, period, due_date, created_at, xp_reward)
+                     VALUES (?, ?, ?, ?, ?, ?)''',
+                  (data['task'], task_type, period, due_date, datetime.now().isoformat(),
+                   data.get('xp_reward', 0)))
         conn.commit()
         conn.close()
         return jsonify({'success': True})
     
     elif request.method == 'PUT':
         data = request.json
+        c.execute('SELECT completed, xp_reward, task FROM tasks WHERE id = ?', (data['id'],))
+        old = c.fetchone()
         c.execute('UPDATE tasks SET completed = ? WHERE id = ?',
                   (data['completed'], data['id']))
+        # Award XP when newly completed and xp_reward is set
+        if data['completed'] == 1 and old and old[0] == 0 and old[1] and old[1] > 0:
+            award_xp(c, old[1], f"Goal: {old[2][:50]}")
         conn.commit()
         conn.close()
         return jsonify({'success': True})
@@ -437,7 +450,8 @@ def tasks():
                 'completed': task[4],
                 'due_date': task[5],
                 'created_at': task[6],
-                'moved_to_old': task[7] if len(task) > 7 else 0
+                'moved_to_old': task[7] if len(task) > 7 else 0,
+                'xp_reward': task[8] if len(task) > 8 else 0
             })
         
         return jsonify(tasks_list)
@@ -833,6 +847,33 @@ def activity_log_api():
         'id': r[0], 'date': r[1], 'activity_type': r[2],
         'duration_mins': r[3], 'intensity': r[4], 'calories_burned': r[5]
     } for r in rows])
+
+
+@app.route('/api/weight-log', methods=['GET', 'POST', 'DELETE'])
+def weight_log_api():
+    conn = sqlite3.connect(DB_PATH)
+    c = conn.cursor()
+
+    if request.method == 'POST':
+        data = request.json
+        c.execute('''INSERT OR REPLACE INTO weight_log (date, weight_kg, created_at)
+                     VALUES (?, ?, ?)''',
+                  (data['date'], data['weight_kg'], datetime.now().isoformat()))
+        conn.commit()
+        conn.close()
+        return jsonify({'success': True})
+
+    if request.method == 'DELETE':
+        entry_id = request.args.get('id')
+        c.execute('DELETE FROM weight_log WHERE id = ?', (entry_id,))
+        conn.commit()
+        conn.close()
+        return jsonify({'success': True})
+
+    c.execute('SELECT id, date, weight_kg FROM weight_log ORDER BY date ASC')
+    rows = c.fetchall()
+    conn.close()
+    return jsonify([{'id': r[0], 'date': r[1], 'weight_kg': r[2]} for r in rows])
 
 
 @app.route('/api/xp', methods=['GET'])

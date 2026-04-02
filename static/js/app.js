@@ -725,41 +725,27 @@ const goalPeriods = ['weekly', 'monthly', 'yearly', 'lifelong'];
 
 // Setup all task forms (goal types only — Tasks tab removed)
 function setupTaskForms() {
-    // Weekly goals
-    document.getElementById('weeklyGoalForm').addEventListener('submit', async (e) => {
-        e.preventDefault();
-        await addTask(e.target.querySelector('.task-input').value, 'goal', 'weekly');
-        e.target.reset();
-    });
-
-    // Monthly goals
-    document.getElementById('monthlyGoalForm').addEventListener('submit', async (e) => {
-        e.preventDefault();
-        await addTask(e.target.querySelector('.task-input').value, 'goal', 'monthly');
-        e.target.reset();
-    });
-
-    // Yearly goals
-    document.getElementById('yearlyGoalForm').addEventListener('submit', async (e) => {
-        e.preventDefault();
-        await addTask(e.target.querySelector('.task-input').value, 'goal', 'yearly');
-        e.target.reset();
-    });
-
-    // Lifelong goals
-    document.getElementById('lifelongGoalForm').addEventListener('submit', async (e) => {
-        e.preventDefault();
-        await addTask(e.target.querySelector('.task-input').value, 'goal', 'lifelong');
-        e.target.reset();
-    });
+    function bindGoalForm(formId, period) {
+        document.getElementById(formId).addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const xpInput = e.target.querySelector('.task-xp-input');
+            const xpReward = xpInput ? (parseInt(xpInput.value) || 0) : 0;
+            await addTask(e.target.querySelector('.task-input').value, 'goal', period, xpReward);
+            e.target.reset();
+        });
+    }
+    bindGoalForm('weeklyGoalForm', 'weekly');
+    bindGoalForm('monthlyGoalForm', 'monthly');
+    bindGoalForm('yearlyGoalForm', 'yearly');
+    bindGoalForm('lifelongGoalForm', 'lifelong');
 }
 
-async function addTask(task, taskType, period) {
+async function addTask(task, taskType, period, xpReward = 0) {
     try {
         const response = await fetch('/api/tasks', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ task, task_type: taskType, period })
+            body: JSON.stringify({ task, task_type: taskType, period, xp_reward: xpReward })
         });
         
         if (response.ok) {
@@ -801,6 +787,7 @@ async function loadTasksByPeriod(period, listId, taskType) {
                 <input type="checkbox" ${task.completed === 1 ? 'checked' : ''}
                        onchange="toggleTask(${task.id}, this.checked)">
                 <div class="task-item-text">${task.task}</div>
+                ${task.xp_reward > 0 ? `<span class="task-xp-badge">+${task.xp_reward} XP</span>` : ''}
                 ${task.due_date && !isOld ? `<div class="task-item-date">Due: ${task.due_date}</div>` : ''}
                 ${isOld ? `<div class="task-item-date">Expired: ${task.due_date}</div>` : ''}
                 <button class="task-item-delete" onclick="deleteTask(${task.id})">Delete</button>
@@ -821,6 +808,7 @@ async function toggleTask(id, completed) {
             body: JSON.stringify({ id, completed: completed ? 1 : 0 })
         });
         loadAllTasks();
+        if (completed) { loadXP(); loadXPLog(); }
     } catch (error) {
         console.error('Error updating task:', error);
     }
@@ -1818,6 +1806,69 @@ document.getElementById('healthDate').addEventListener('change', (e) => {
     loadWater(dateStr);
 });
 
+// ── Weight Log ─────────────────────────────────────────────────
+
+let weightChartInstance = null;
+
+async function loadWeightLog() {
+    try {
+        const res = await fetch('/api/weight-log');
+        const data = await res.json();
+
+        if (weightChartInstance) { weightChartInstance.destroy(); weightChartInstance = null; }
+        if (data.length === 0) return;
+
+        const isLight = document.documentElement.classList.contains('light-mode');
+        const gridColor = isLight ? 'rgba(0,0,0,0.07)' : 'rgba(255,255,255,0.08)';
+        const tickColor = isLight ? '#6b7280' : '#8b92b0';
+
+        const ctx = document.getElementById('weightChart').getContext('2d');
+        weightChartInstance = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: data.map(d => d.date),
+                datasets: [{
+                    label: 'Weight (kg)',
+                    data: data.map(d => d.weight_kg),
+                    borderColor: '#c084fc',
+                    backgroundColor: 'rgba(192,132,252,0.1)',
+                    tension: 0.3,
+                    pointRadius: 4,
+                    pointBackgroundColor: '#c084fc',
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: { beginAtZero: false, grid: { color: gridColor }, ticks: { color: tickColor } },
+                    x: { grid: { color: gridColor }, ticks: { color: tickColor } }
+                }
+            }
+        });
+    } catch (e) {
+        console.error('Error loading weight log:', e);
+    }
+}
+
+async function saveWeightEntry() {
+    const date = document.getElementById('weightDate').value;
+    const weight = parseFloat(document.getElementById('weightKg').value);
+    if (!date || !weight) return;
+    try {
+        await fetch('/api/weight-log', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ date, weight_kg: weight })
+        });
+        document.getElementById('weightKg').value = '';
+        loadWeightLog();
+    } catch (e) {
+        console.error('Error saving weight:', e);
+    }
+}
+
 // ── XP System ──────────────────────────────────────────────────
 
 async function loadXP() {
@@ -1828,6 +1879,10 @@ async function loadXP() {
         let text = `Lv.${data.level} · ${data.total_xp.toLocaleString()} XP`;
         if (data.multiplier > 1) text += ` ×${data.multiplier.toFixed(2)}`;
         el.textContent = text;
+        const pct = Math.min(100, data.xp_for_next > 0 ? (data.xp_in_level / data.xp_for_next) * 100 : 100);
+        document.getElementById('xp-progress-fill').style.width = pct + '%';
+        document.getElementById('xp-progress-label').textContent =
+            `${data.xp_in_level.toLocaleString()} / ${data.xp_for_next.toLocaleString()} XP to next level`;
     } catch (e) {
         console.error('Error loading XP:', e);
     }
@@ -1882,6 +1937,8 @@ async function initializeApp() {
     loadFinance();
     setupReminderForms();
     loadAllReminders();
+    document.getElementById('weightDate').value = getLocalDateString();
+    loadWeightLog();
     document.getElementById('healthDate').value = getLocalDateString();
     loadHealthMetrics();
     loadFoodLog(getLocalDateString());

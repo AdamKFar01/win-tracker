@@ -2035,12 +2035,81 @@ html.light-mode .health-target-value { color: #1f2937; }
     .health-form-grid    { grid-template-columns: 1fr 1fr; }
 }
 
+/* ── Goal XP badge ──────────────────────────────────────────── */
+.task-xp-input {
+    width: 72px;
+    padding: 8px 10px;
+    border: 1px solid rgba(192, 132, 252, 0.25);
+    border-radius: 8px;
+    background: transparent;
+    color: #c084fc;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.88em;
+    text-align: center;
+    flex-shrink: 0;
+}
+
+.task-xp-badge {
+    font-size: 0.75em;
+    font-weight: 600;
+    color: #c084fc;
+    background: rgba(192, 132, 252, 0.12);
+    border: 1px solid rgba(192, 132, 252, 0.25);
+    border-radius: 6px;
+    padding: 2px 7px;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+html.light-mode .task-xp-input { color: #7c3aed; border-color: rgba(124,58,237,0.3); }
+html.light-mode .task-xp-badge { color: #7c3aed; background: rgba(124,58,237,0.08); border-color: rgba(124,58,237,0.25); }
+
 /* ── XP Display ─────────────────────────────────────────────── */
 @keyframes xp-sweep {
     0%   { background-position: 0% 50%; }
     50%  { background-position: 100% 50%; }
     100% { background-position: 0% 50%; }
 }
+
+.xp-header-block {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+}
+
+.xp-progress-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+}
+
+.xp-progress-track {
+    width: 160px;
+    height: 5px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 99px;
+    overflow: hidden;
+}
+
+#xp-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #c084fc, #00c9a7);
+    border-radius: 99px;
+    width: 0%;
+    transition: width 0.4s ease;
+}
+
+#xp-progress-label {
+    font-size: 0.62rem;
+    color: #8b92b0;
+    letter-spacing: 0.03em;
+    white-space: nowrap;
+}
+
+html.light-mode .xp-progress-track { background: rgba(0,0,0,0.08); }
+html.light-mode #xp-progress-label { color: #6b7280; }
 
 #xp-display {
     font-family: 'Inter', sans-serif;
@@ -2099,3 +2168,51 @@ html.light-mode .health-target-value { color: #1f2937; }
 html.light-mode .xp-entry { border-bottom-color: rgba(0,0,0,0.06); }
 html.light-mode .xp-entry-date   { color: #6b7280; }
 html.light-mode .xp-entry-reason { color: #374151; }
+
+/* ── Daily Weight Log ───────────────────────────────────────── */
+.weight-checkin-card {
+    background: linear-gradient(135deg, rgba(0, 201, 167, 0.06) 0%, transparent 70%);
+    border: 1px solid rgba(0, 201, 167, 0.2);
+    border-radius: 14px;
+    padding: 20px 24px;
+    margin-bottom: 20px;
+}
+
+.weight-checkin-card h3 {
+    font-size: 1em;
+    font-weight: 500;
+    color: #00c9a7;
+    margin-bottom: 14px;
+    text-shadow: none;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+}
+
+.weight-form-row {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    margin-bottom: 18px;
+    flex-wrap: wrap;
+}
+
+.weight-form-row input {
+    padding: 9px 12px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.04);
+    color: #e5e7eb;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.92em;
+}
+
+.weight-form-row input[type="date"] { flex: 1; min-width: 130px; }
+.weight-form-row input[type="number"] { width: 90px; }
+
+.weight-chart-container {
+    max-height: 220px;
+    position: relative;
+}
+
+html.light-mode .weight-checkin-card { background: rgba(0,201,167,0.04); border-color: rgba(0,201,167,0.3); }
+html.light-mode .weight-form-row input { background: #fff; color: #1f2937; border-color: rgba(0,0,0,0.12); }
