@@ -360,7 +360,34 @@
         <!-- Goals Tab -->
         <div class="tab-content" id="goals">
             <h2>Goals</h2>
-            
+
+            <!-- Daily Top 3 Goals -->
+            <div class="daily-goals-card" id="dailyGoalsCard">
+                <div class="daily-goals-header">
+                    <h3 id="dailyGoalsTitle">Today's Goals</h3>
+                    <input type="date" id="dailyGoalsDate">
+                </div>
+                <div class="daily-goal-row">
+                    <span class="goal-check-area" id="goalCheckArea1" onclick="toggleGoalComplete(1)">
+                        <img src="/static/img/icon-b.png" class="goal-done-icon" id="goalDoneIcon1" alt="">
+                    </span>
+                    <input type="text" class="goal-text-input" id="goalText1" placeholder="Goal 1...">
+                </div>
+                <div class="daily-goal-row">
+                    <span class="goal-check-area" id="goalCheckArea2" onclick="toggleGoalComplete(2)">
+                        <img src="/static/img/icon-b.png" class="goal-done-icon" id="goalDoneIcon2" alt="">
+                    </span>
+                    <input type="text" class="goal-text-input" id="goalText2" placeholder="Goal 2...">
+                </div>
+                <div class="daily-goal-row">
+                    <span class="goal-check-area" id="goalCheckArea3" onclick="toggleGoalComplete(3)">
+                        <img src="/static/img/icon-b.png" class="goal-done-icon" id="goalDoneIcon3" alt="">
+                    </span>
+                    <input type="text" class="goal-text-input" id="goalText3" placeholder="Goal 3...">
+                </div>
+                <button class="btn-teal" id="saveDailyGoalsBtn" onclick="saveDailyGoals()">Save Goals</button>
+            </div>
+
             <!-- Weekly Goals -->
             <div class="collapsible-section">
                 <div class="section-header">

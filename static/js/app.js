@@ -586,6 +586,7 @@ async function loadWins() {
 
 // Week chart
 let weekChartInstance = null;
+let weekGoalsAllDone = [];
 const barLogoImg = new Image();
 barLogoImg.src = '/static/img/icon.png';
 
@@ -597,7 +598,7 @@ const barLogoPlugin = {
         const dataset = chart.getDatasetMeta(0);
         const size = 22;
         dataset.data.forEach((bar, i) => {
-            if (data.datasets[0].data[i] >= 1000) {
+            if (data.datasets[0].data[i] >= 1000 && weekGoalsAllDone[i]) {
                 ctx.save();
                 ctx.globalAlpha = 0.85;
                 ctx.drawImage(barLogoImg, bar.x - size / 2, bar.y - size - 4, size, size);
@@ -617,6 +618,7 @@ async function loadWeekChart() {
             return date.toLocaleDateString('en-GB', { weekday: 'short', month: 'short', day: 'numeric' });
         });
         const points = data.map(d => d.points);
+        weekGoalsAllDone = data.map(d => d.goals_all_done);
 
         const ctx = document.getElementById('weekChart').getContext('2d');
 
@@ -1066,9 +1068,10 @@ function createDayElement(day, otherMonth, date) {
         dayDiv.appendChild(eventsContainer);
     }
     
-    // Show logo badge if this past/current day reached 1000 points
+    // Show logo badge only if score >= 1000 AND all 3 daily goals complete
     const isPastOrToday = date <= today;
-    if (isPastOrToday && !otherMonth && monthPointsData[dateToLocalString(date)] >= 1000) {
+    const dayData = monthPointsData[dateToLocalString(date)];
+    if (isPastOrToday && !otherMonth && dayData && dayData.points >= 1000 && dayData.goals_all_done) {
         const badge = document.createElement('img');
         badge.src = '/static/img/icon-b.png';
         badge.className = 'day-logo-badge';
@@ -1350,6 +1353,79 @@ async function deleteReminder(id) {
 }
 
 // Load initial data
+// ── Daily Goals ────────────────────────────────────────────────
+const dailyGoalComplete = [false, false, false];
+
+async function loadDailyGoals(dateStr) {
+    const today = getLocalDateString();
+    const isPast = dateStr < today;
+    const card = document.getElementById('dailyGoalsCard');
+    const title = document.getElementById('dailyGoalsTitle');
+    const saveBtn = document.getElementById('saveDailyGoalsBtn');
+
+    title.textContent = dateStr === today ? "Today's Goals" : `Goals for ${dateStr}`;
+
+    if (isPast) {
+        card.classList.add('readonly');
+        saveBtn.style.display = 'none';
+    } else {
+        card.classList.remove('readonly');
+        saveBtn.style.display = '';
+    }
+
+    try {
+        const response = await fetch(`/api/daily-goals?date=${dateStr}`);
+        const data = await response.json();
+
+        for (let i = 1; i <= 3; i++) {
+            const textEl = document.getElementById(`goalText${i}`);
+            const iconEl = document.getElementById(`goalDoneIcon${i}`);
+            const areaEl = document.getElementById(`goalCheckArea${i}`);
+            const complete = data[`goal_${i}_complete`];
+
+            textEl.value = data[`goal_${i}_text`] || '';
+            dailyGoalComplete[i - 1] = complete;
+            iconEl.style.display = complete ? 'block' : 'none';
+            textEl.disabled = isPast;
+            areaEl.style.pointerEvents = isPast ? 'none' : '';
+            areaEl.style.opacity = isPast ? '0.6' : '';
+        }
+    } catch (error) {
+        console.error('Error loading daily goals:', error);
+    }
+}
+
+function toggleGoalComplete(n) {
+    if (document.getElementById('dailyGoalsCard').classList.contains('readonly')) return;
+    dailyGoalComplete[n - 1] = !dailyGoalComplete[n - 1];
+    document.getElementById(`goalDoneIcon${n}`).style.display = dailyGoalComplete[n - 1] ? 'block' : 'none';
+}
+
+async function saveDailyGoals() {
+    const dateStr = document.getElementById('dailyGoalsDate').value;
+    try {
+        await fetch('/api/daily-goals', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                date: dateStr,
+                goal_1_text: document.getElementById('goalText1').value,
+                goal_1_complete: dailyGoalComplete[0] ? 1 : 0,
+                goal_2_text: document.getElementById('goalText2').value,
+                goal_2_complete: dailyGoalComplete[1] ? 1 : 0,
+                goal_3_text: document.getElementById('goalText3').value,
+                goal_3_complete: dailyGoalComplete[2] ? 1 : 0
+            })
+        });
+    } catch (error) {
+        console.error('Error saving daily goals:', error);
+    }
+}
+
+document.getElementById('dailyGoalsDate').addEventListener('change', (e) => {
+    loadDailyGoals(e.target.value);
+});
+
 async function initializeApp() {
     await loadActivitiesFromDatabase();
     await loadCalendarEvents();
@@ -1361,6 +1437,8 @@ async function initializeApp() {
     loadWeekChart();
     setupTaskForms();
     loadAllTasks();
+    document.getElementById('dailyGoalsDate').value = getLocalDateString();
+    loadDailyGoals(getLocalDateString());
     loadFinance();
     setupReminderForms();
     loadAllReminders();

@@ -95,6 +95,17 @@ def init_db():
                   mindset REAL DEFAULT 0)''')
     c.execute('INSERT OR IGNORE INTO pillar_scores (id) VALUES (1)')
 
+    # Daily goals table
+    c.execute('''CREATE TABLE IF NOT EXISTS daily_goals
+                 (id INTEGER PRIMARY KEY AUTOINCREMENT,
+                  date TEXT NOT NULL UNIQUE,
+                  goal_1_text TEXT DEFAULT '',
+                  goal_1_complete INTEGER DEFAULT 0,
+                  goal_2_text TEXT DEFAULT '',
+                  goal_2_complete INTEGER DEFAULT 0,
+                  goal_3_text TEXT DEFAULT '',
+                  goal_3_complete INTEGER DEFAULT 0)''')
+
     conn.commit()
     conn.close()
 
@@ -182,20 +193,70 @@ def daily_summary():
 
 @app.route('/api/week-data')
 def week_data():
-    # Get data for the last 7 days
     conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
-    
+
     week_data = []
     for i in range(7):
         date = (datetime.now() - timedelta(days=6-i)).strftime('%Y-%m-%d')
         c.execute('SELECT SUM(points) FROM wins WHERE date = ?', (date,))
         result = c.fetchone()
         total = result[0] if result[0] else 0
-        week_data.append({'date': date, 'points': total})
-    
+
+        c.execute('''SELECT goal_1_text, goal_1_complete, goal_2_text, goal_2_complete,
+                            goal_3_text, goal_3_complete
+                     FROM daily_goals WHERE date = ?''', (date,))
+        grow = c.fetchone()
+        if grow:
+            goals_all_done = bool(grow[0]) and bool(grow[1]) and \
+                             bool(grow[2]) and bool(grow[3]) and \
+                             bool(grow[4]) and bool(grow[5])
+        else:
+            goals_all_done = False
+
+        week_data.append({'date': date, 'points': total, 'goals_all_done': goals_all_done})
+
     conn.close()
     return jsonify(week_data)
+
+
+@app.route('/api/daily-goals', methods=['GET', 'POST'])
+def daily_goals_api():
+    conn = sqlite3.connect(DB_PATH)
+    c = conn.cursor()
+
+    if request.method == 'POST':
+        data = request.json
+        c.execute('''INSERT OR REPLACE INTO daily_goals
+                     (date, goal_1_text, goal_1_complete, goal_2_text, goal_2_complete,
+                      goal_3_text, goal_3_complete)
+                     VALUES (?, ?, ?, ?, ?, ?, ?)''',
+                  (data['date'],
+                   data.get('goal_1_text', ''), int(data.get('goal_1_complete', 0)),
+                   data.get('goal_2_text', ''), int(data.get('goal_2_complete', 0)),
+                   data.get('goal_3_text', ''), int(data.get('goal_3_complete', 0))))
+        conn.commit()
+        conn.close()
+        return jsonify({'success': True})
+
+    date = request.args.get('date', datetime.now().strftime('%Y-%m-%d'))
+    c.execute('SELECT * FROM daily_goals WHERE date = ?', (date,))
+    row = c.fetchone()
+    conn.close()
+
+    if row:
+        return jsonify({
+            'date': row[1],
+            'goal_1_text': row[2], 'goal_1_complete': bool(row[3]),
+            'goal_2_text': row[4], 'goal_2_complete': bool(row[5]),
+            'goal_3_text': row[6], 'goal_3_complete': bool(row[7])
+        })
+    return jsonify({
+        'date': date,
+        'goal_1_text': '', 'goal_1_complete': False,
+        'goal_2_text': '', 'goal_2_complete': False,
+        'goal_3_text': '', 'goal_3_complete': False
+    })
 
 @app.route('/api/tasks', methods=['GET', 'POST', 'PUT', 'DELETE'])
 def tasks():
@@ -479,18 +540,38 @@ def month_data():
     if not year or not month:
         return jsonify({})
 
+    month_str = f"{year}-{month.zfill(2)}"
     conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
+
     c.execute(
         '''SELECT date, SUM(points) FROM wins
            WHERE strftime('%Y-%m', date) = ?
            GROUP BY date''',
-        (f"{year}-{month.zfill(2)}",)
+        (month_str,)
     )
-    rows = c.fetchall()
+    points_rows = c.fetchall()
+
+    c.execute(
+        '''SELECT date, goal_1_text, goal_1_complete, goal_2_text, goal_2_complete,
+                  goal_3_text, goal_3_complete
+           FROM daily_goals WHERE strftime('%Y-%m', date) = ?''',
+        (month_str,)
+    )
+    goals_rows = c.fetchall()
     conn.close()
 
-    return jsonify({row[0]: row[1] for row in rows})
+    goals_map = {}
+    for row in goals_rows:
+        goals_map[row[0]] = bool(row[1]) and bool(row[2]) and \
+                             bool(row[3]) and bool(row[4]) and \
+                             bool(row[5]) and bool(row[6])
+
+    result = {}
+    for date, pts in points_rows:
+        result[date] = {'points': pts, 'goals_all_done': goals_map.get(date, False)}
+
+    return jsonify(result)
 
 
 @app.route('/api/pillar-scores', methods=['GET', 'POST'])

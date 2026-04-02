@@ -959,6 +959,113 @@ h1 {
 .finance-item-amount.income  { color: #10b981; }
 .finance-item-amount.expense { color: #dc2626; }
 
+/* ── Daily Goals ───────────────────────────────────────────── */
+.daily-goals-card {
+    background: linear-gradient(135deg, rgba(59, 7, 100, 0.3) 0%, transparent 70%);
+    border: 1px solid rgba(192, 132, 252, 0.2);
+    border-radius: 8px;
+    padding: 25px;
+    margin-bottom: 30px;
+}
+
+.daily-goals-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 14px;
+    margin-bottom: 20px;
+    border-bottom: 1px solid rgba(192, 132, 252, 0.15);
+}
+
+.daily-goals-header h3 {
+    font-size: 1em;
+    font-weight: 400;
+    color: #c084fc;
+    text-shadow: none;
+    margin: 0;
+}
+
+.daily-goals-header input[type="date"] {
+    background: transparent;
+    border: 1px solid rgba(192, 132, 252, 0.3);
+    border-radius: 6px;
+    color: #8b92b0;
+    padding: 4px 8px;
+    font-size: 0.85em;
+    font-family: inherit;
+}
+
+.daily-goal-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 14px;
+}
+
+.goal-check-area {
+    width: 18px;
+    height: 18px;
+    border: 1.5px solid rgba(192, 132, 252, 0.5);
+    border-radius: 3px;
+    cursor: pointer;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: border-color 0.2s;
+}
+
+.goal-check-area:hover {
+    border-color: #c084fc;
+}
+
+.goal-done-icon {
+    width: 14px;
+    height: 14px;
+    display: none;
+    object-fit: contain;
+}
+
+.goal-text-input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid rgba(192, 132, 252, 0.25);
+    color: #e5e7eb;
+    padding: 4px 0;
+    font-size: 0.95em;
+    font-family: inherit;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.goal-text-input:focus {
+    border-bottom-color: #c084fc;
+}
+
+.goal-text-input:disabled {
+    color: #6b7280;
+    border-bottom-color: rgba(255, 255, 255, 0.08);
+    cursor: default;
+}
+
+.btn-teal {
+    background: #0d9488;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 22px;
+    cursor: pointer;
+    font-size: 0.9em;
+    font-weight: 400;
+    margin-top: 8px;
+    transition: background 0.2s;
+}
+
+.btn-teal:hover {
+    background: #0f766e;
+}
+
 /* ── Theme toggle button ────────────────────────────────────── */
 .theme-toggle {
     background: transparent;
@@ -1173,6 +1280,19 @@ html.light-mode .collapse-btn {
 }
 html.light-mode .finance-card.balance .amount { color: #7c3aed; }
 html.light-mode .finance-col-chart h3 { color: #7c3aed; border-bottom-color: rgba(124, 58, 237, 0.14); }
+
+html.light-mode .daily-goals-card {
+    background: linear-gradient(135deg, rgba(192, 132, 252, 0.08) 0%, transparent 70%);
+    border-color: rgba(124, 58, 237, 0.18);
+}
+html.light-mode .daily-goals-header { border-bottom-color: rgba(124, 58, 237, 0.14); }
+html.light-mode .daily-goals-header h3 { color: #7c3aed; }
+html.light-mode .daily-goals-header input[type="date"] { color: #6b7280; border-color: rgba(124, 58, 237, 0.25); }
+html.light-mode .goal-check-area { border-color: rgba(124, 58, 237, 0.4); }
+html.light-mode .goal-check-area:hover { border-color: #7c3aed; }
+html.light-mode .goal-text-input { color: #1f2937; border-bottom-color: rgba(124, 58, 237, 0.2); }
+html.light-mode .goal-text-input:focus { border-bottom-color: #7c3aed; }
+html.light-mode .goal-text-input:disabled { color: #9ca3af; border-bottom-color: rgba(0, 0, 0, 0.08); }
 
 html.light-mode .activity-item-name,
 html.light-mode .task-item-text { color: #1f2937; }

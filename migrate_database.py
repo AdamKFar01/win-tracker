@@ -164,6 +164,26 @@ else:
     conn.commit()
     print("   ✅ Created reminders table")
 
+# 6. Create daily_goals table
+print("📝 Checking daily_goals table...")
+if not table_exists('daily_goals'):
+    try:
+        c.execute('''CREATE TABLE daily_goals
+                     (id INTEGER PRIMARY KEY AUTOINCREMENT,
+                      date TEXT NOT NULL UNIQUE,
+                      goal_1_text TEXT DEFAULT '',
+                      goal_1_complete INTEGER DEFAULT 0,
+                      goal_2_text TEXT DEFAULT '',
+                      goal_2_complete INTEGER DEFAULT 0,
+                      goal_3_text TEXT DEFAULT '',
+                      goal_3_complete INTEGER DEFAULT 0)''')
+        conn.commit()
+        print("   ✅ Created daily_goals table")
+    except Exception as e:
+        print(f"   ⚠️  Warning: {e}")
+else:
+    print("   ✅ daily_goals table exists")
+
 conn.close()
 
 print()
