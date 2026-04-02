@@ -3,6 +3,18 @@ function cssVar(name) {
     return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
 }
 
+function getThemeIcon() {
+    const theme = document.documentElement.getAttribute('data-theme') || '1';
+    if (theme === '2') return '/static/img/icon-r.png';
+    if (theme === '3') return '/static/img/icon-n.png';
+    return '/static/img/icon-b.png';
+}
+
+function updateThemeIcons() {
+    const icon = getThemeIcon();
+    document.querySelectorAll('.goal-done-icon, .day-logo-badge').forEach(img => img.src = icon);
+}
+
 // ── Colour theme switcher ────────────────────────────────────
 function applyColorTheme(themeNum) {
     document.documentElement.setAttribute('data-theme', themeNum);
@@ -10,6 +22,7 @@ function applyColorTheme(themeNum) {
     document.querySelectorAll('.theme-dot').forEach(btn => {
         btn.classList.toggle('active', btn.dataset.theme === String(themeNum));
     });
+    updateThemeIcons();
     rebuildAllCharts();
 }
 
@@ -35,6 +48,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll('.theme-dot').forEach(btn => {
         btn.addEventListener('click', () => applyColorTheme(btn.dataset.theme));
     });
+    updateThemeIcons();
 
     const themeToggle = document.getElementById('themeToggle');
     if (localStorage.getItem('theme') === 'light') {
@@ -492,9 +506,9 @@ async function savePillarScores() {
 // Personal Pillars radar chart
 let pillarsChartInstance = null;
 const pillarsLogoImg = new Image();
-pillarsLogoImg.src = '/static/img/icon-b.png';
 
 function loadPillarsChart(scores) {
+    pillarsLogoImg.src = getThemeIcon();
     const ctx = document.getElementById('pillarsChart').getContext('2d');
     const data = [
         scores.physical    || 0,
@@ -1146,7 +1160,7 @@ function createDayElement(day, otherMonth, date) {
     const dayData = monthPointsData[dateToLocalString(date)];
     if (isPastOrToday && !otherMonth && dayData && dayData.points >= 1000 && dayData.goals_all_done) {
         const badge = document.createElement('img');
-        badge.src = '/static/img/icon-b.png';
+        badge.src = getThemeIcon();
         badge.className = 'day-logo-badge';
         badge.alt = '';
         dayDiv.appendChild(badge);
@@ -1849,6 +1863,12 @@ async function loadWeightLog() {
     try {
         const res = await fetch('/api/weight-log');
         const data = await res.json();
+
+        // Update today's weight in Daily Summary
+        const today = getLocalDateString();
+        const todayEntry = data.find(d => d.date === today);
+        const summaryWeight = document.getElementById('summaryWeight');
+        if (summaryWeight) summaryWeight.textContent = todayEntry ? todayEntry.weight_kg + ' kg' : '—';
 
         if (weightChartInstance) { weightChartInstance.destroy(); weightChartInstance = null; }
         if (data.length === 0) return;
