@@ -948,9 +948,9 @@ def xp_daily_check():
         # Missed yesterday
         if not day_was_win(day_before):
             # Two consecutive missed days → -1000 XP
-            award_xp(c, -1000, "Missed 2 consecutive days penalty")
+            award_xp(c, -100, "Missed 2 consecutive days penalty")
         else:
-            award_xp(c, -500, "Missed yesterday penalty")
+            award_xp(c, -50, "Missed yesterday penalty")
         # Reset streak
         c.execute('UPDATE user_stats SET streak_days = 0 WHERE id = 1')
 
