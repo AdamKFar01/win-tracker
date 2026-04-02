@@ -279,6 +279,29 @@ h1 {
     box-shadow: 0 0 15px rgba(192, 132, 252, 0.35);
 }
 
+.btn-secondary {
+    background: transparent;
+    color: #8b92b0;
+    padding: 7px 18px;
+    border: 1px solid rgba(139, 146, 176, 0.35);
+    border-radius: 8px;
+    font-size: 0.85em;
+    font-family: 'Inter', sans-serif;
+    font-weight: 400;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-secondary:hover {
+    color: #c084fc;
+    border-color: rgba(192, 132, 252, 0.5);
+}
+
+.wins-toggle-btn {
+    display: block;
+    margin: 10px auto 0;
+}
+
 /* ── Wins list ─────────────────────────────────────────────── */
 .wins-list {
     margin-bottom: 30px;
@@ -852,13 +875,15 @@ h1 {
 
 /* ── Finance ───────────────────────────────────────────────── */
 .finance-total-summary {
-    text-align: center;
+    display: flex;
+    gap: 16px;
+    align-items: stretch;
     margin-bottom: 28px;
 }
 
 .finance-total-card {
-    display: inline-block;
-    padding: 22px 48px;
+    flex: 1.4;
+    padding: 22px 32px;
     border-radius: 15px;
     text-align: center;
     background: linear-gradient(135deg, rgba(59, 7, 100, 0.35) 0%, transparent 70%);
@@ -881,18 +906,17 @@ h1 {
     color: #c084fc;
 }
 
-/* Mini cards inside chart column */
+/* Mini cards in the top summary row */
 .finance-mini-cards {
     display: flex;
     gap: 12px;
-    flex-wrap: wrap;
-    margin-bottom: 18px;
+    flex: 2;
 }
 
 .finance-mini-card {
     flex: 1;
-    padding: 10px 20px;
-    border-radius: 10px;
+    padding: 16px 20px;
+    border-radius: 15px;
     text-align: center;
 }
 
@@ -920,7 +944,7 @@ h1 {
 .finance-mini-card.crypto .amount { color: #00c9a7; }
 
 .finance-mini-card .amount {
-    font-size: 1.4em;
+    font-size: 1.8em;
     font-weight: 400;
     color: #e5e7eb;
 }

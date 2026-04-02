@@ -557,20 +557,22 @@ async function loadWins() {
     try {
         const response = await fetch(`/api/wins?date=${date}`);
         const wins = await response.json();
-        
+
         const winsList = document.getElementById('winsList');
         winsList.innerHTML = '';
-        
+
         if (wins.length === 0) {
             winsList.innerHTML = '<p style="color: #999;">No wins logged yet for this day.</p>';
             return;
         }
-        
-        wins.forEach(win => {
-            const winItem = document.createElement('div');
-            winItem.className = 'win-item';
-            
-            winItem.innerHTML = `
+
+        // Most recently added win is last in the array (insert order)
+        const reversed = [...wins].reverse();
+
+        function renderWinItem(win) {
+            const el = document.createElement('div');
+            el.className = 'win-item';
+            el.innerHTML = `
                 <div class="win-item-info">
                     <div class="win-item-category">${win.category.toUpperCase()}</div>
                     <div>${win.activity}${win.duration ? ` (${win.duration} min)` : ''}</div>
@@ -579,9 +581,32 @@ async function loadWins() {
                 <div class="win-item-points">+${win.points}</div>
                 <button class="win-item-delete" onclick="deleteWin(${win.id})">Delete</button>
             `;
-            
-            winsList.appendChild(winItem);
-        });
+            return el;
+        }
+
+        function renderCollapsed() {
+            winsList.innerHTML = '';
+            winsList.appendChild(renderWinItem(reversed[0]));
+            if (reversed.length > 1) {
+                const btn = document.createElement('button');
+                btn.className = 'btn-secondary wins-toggle-btn';
+                btn.textContent = `Show All (${reversed.length})`;
+                btn.onclick = renderExpanded;
+                winsList.appendChild(btn);
+            }
+        }
+
+        function renderExpanded() {
+            winsList.innerHTML = '';
+            reversed.forEach(win => winsList.appendChild(renderWinItem(win)));
+            const btn = document.createElement('button');
+            btn.className = 'btn-secondary wins-toggle-btn';
+            btn.textContent = 'Show Less';
+            btn.onclick = renderCollapsed;
+            winsList.appendChild(btn);
+        }
+
+        renderCollapsed();
     } catch (error) {
         console.error('Error loading wins:', error);
     }
