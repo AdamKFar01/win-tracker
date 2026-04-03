@@ -819,31 +819,44 @@ async function loadTasksByPeriod(period, listId, taskType) {
     try {
         const response = await fetch(`/api/tasks?type=${taskType}&period=${period}`);
         const tasks = await response.json();
-        
+
         const tasksList = document.getElementById(listId);
         tasksList.innerHTML = '';
-        
+
         if (tasks.length === 0) {
             tasksList.innerHTML = '<p style="color: #8b92b0; text-align: center; padding: 20px;">No items yet.</p>';
             return;
         }
-        
+
         tasks.forEach(task => {
             const taskItem = document.createElement('div');
-            taskItem.className = `task-item ${task.completed === 1 ? 'completed' : ''}`;
-            
-            const isOld = period === 'old';
+            taskItem.className = 'task-item' + (task.completed === 1 ? ' completed' : '');
 
-            taskItem.innerHTML = `
-                <input type="checkbox" ${task.completed === 1 ? 'checked' : ''}
-                       onchange="toggleTask(${task.id}, this.checked)">
-                <div class="task-item-text">${task.task}</div>
-                ${task.xp_reward > 0 ? `<span class="task-xp-badge">+${task.xp_reward} XP</span>` : ''}
-                ${task.due_date && !isOld ? `<div class="task-item-date">Due: ${task.due_date}</div>` : ''}
-                ${isOld ? `<div class="task-item-date">Expired: ${task.due_date}</div>` : ''}
-                <button class="task-item-delete" onclick="deleteTask(${task.id})">Delete</button>
-            `;
-            
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.checked = task.completed === 1;
+            checkbox.addEventListener('change', () => toggleTask(task.id, checkbox.checked));
+
+            const textDiv = document.createElement('div');
+            textDiv.className = 'task-item-text';
+            textDiv.textContent = task.task;
+
+            taskItem.appendChild(checkbox);
+            taskItem.appendChild(textDiv);
+
+            if (task.xp_reward > 0) {
+                const badge = document.createElement('span');
+                badge.className = 'task-xp-badge';
+                badge.textContent = `+${task.xp_reward} XP`;
+                taskItem.appendChild(badge);
+            }
+
+            const deleteBtn = document.createElement('button');
+            deleteBtn.className = 'task-item-delete';
+            deleteBtn.textContent = 'Delete';
+            deleteBtn.addEventListener('click', () => deleteTask(task.id));
+            taskItem.appendChild(deleteBtn);
+
             tasksList.appendChild(taskItem);
         });
     } catch (error) {
@@ -1677,6 +1690,8 @@ async function addFoodEntry(meal) {
         });
         loadFoodLog(date);
         loadActivityLog(date);
+        loadXP();
+        loadXPLog();
     } catch (err) {
         console.error('Error adding food entry:', err);
     }

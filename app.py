@@ -424,17 +424,33 @@ def tasks():
     else:
         task_type = request.args.get('type', 'task')
         period = request.args.get('period', 'all')
-        
+        now = datetime.now()
+
         if period == 'old':
-            # Get expired tasks
-            today = datetime.now().strftime('%Y-%m-%d')
-            c.execute('''SELECT * FROM tasks 
-                        WHERE task_type = ? AND due_date < ? 
+            today = now.strftime('%Y-%m-%d')
+            c.execute('''SELECT * FROM tasks
+                        WHERE task_type = ? AND due_date < ?
                         ORDER BY due_date DESC''', (task_type, today))
         elif period == 'all':
             c.execute('SELECT * FROM tasks WHERE task_type = ? ORDER BY completed, due_date', (task_type,))
+        elif period == 'weekly':
+            # Reset every Monday — only show goals created since this Monday
+            week_start = (now - timedelta(days=now.weekday())).strftime('%Y-%m-%d')
+            c.execute('''SELECT * FROM tasks WHERE task_type = ? AND period = ?
+                         AND DATE(created_at) >= ? ORDER BY completed, created_at''',
+                     (task_type, period, week_start))
+        elif period == 'monthly':
+            month_start = now.replace(day=1).strftime('%Y-%m-%d')
+            c.execute('''SELECT * FROM tasks WHERE task_type = ? AND period = ?
+                         AND DATE(created_at) >= ? ORDER BY completed, created_at''',
+                     (task_type, period, month_start))
+        elif period == 'yearly':
+            year_start = now.replace(month=1, day=1).strftime('%Y-%m-%d')
+            c.execute('''SELECT * FROM tasks WHERE task_type = ? AND period = ?
+                         AND DATE(created_at) >= ? ORDER BY completed, created_at''',
+                     (task_type, period, year_start))
         else:
-            c.execute('SELECT * FROM tasks WHERE task_type = ? AND period = ? ORDER BY completed, due_date', 
+            c.execute('SELECT * FROM tasks WHERE task_type = ? AND period = ? ORDER BY completed, due_date',
                      (task_type, period))
         
         tasks = c.fetchall()
@@ -787,14 +803,27 @@ def food_log_api():
 
     if request.method == 'POST':
         data = request.json
+        entry_date = data['date']
         c.execute('''INSERT INTO food_log
                      (date, meal, food_name, calories, protein_g, carbs_g, fat_g, created_at)
                      VALUES (?, ?, ?, ?, ?, ?, ?, ?)''',
-                  (data['date'], data['meal'], data['food_name'],
+                  (entry_date, data['meal'], data['food_name'],
                    data.get('calories', 0), data.get('protein_g', 0),
                    data.get('carbs_g', 0), data.get('fat_g', 0),
                    datetime.now().isoformat()))
         conn.commit()
+        # Check if protein target is met for today
+        c.execute('SELECT SUM(protein_g) FROM food_log WHERE date = ?', (entry_date,))
+        total_protein = c.fetchone()[0] or 0
+        c.execute('SELECT protein_target FROM health_metrics WHERE id = 1')
+        m = c.fetchone()
+        protein_target = m[0] if m else 0
+        if protein_target > 0 and total_protein >= protein_target:
+            c.execute("SELECT COUNT(*) FROM xp_log WHERE DATE(date) = ? AND reason LIKE 'Protein goal%'",
+                     (entry_date,))
+            if c.fetchone()[0] == 0:
+                award_xp(c, int(protein_target), f'Protein goal met ({int(total_protein)}g)')
+                conn.commit()
         conn.close()
         return jsonify({'success': True})
 
@@ -882,13 +911,22 @@ def xp_api():
     c = conn.cursor()
     c.execute('SELECT total_xp, streak_days FROM user_stats WHERE id = 1')
     row = c.fetchone()
-    conn.close()
     total_xp = row[0] if row else 0
     streak_days = row[1] if row else 0
-    level, xp_in_level, xp_for_next = _compute_level(total_xp)
+    # Add current finance total balance as a starter XP boost
+    c.execute('''SELECT COALESCE(SUM(CASE
+        WHEN type='income'             THEN amount
+        WHEN type='expense'            THEN -amount
+        WHEN type='crypto_investment'  THEN amount
+        WHEN type='crypto_withdrawal'  THEN -amount
+        ELSE 0 END), 0) FROM finance''')
+    balance = c.fetchone()[0] or 0
+    conn.close()
+    effective_xp = total_xp + max(0, int(balance))
+    level, xp_in_level, xp_for_next = _compute_level(effective_xp)
     multiplier = 1.25 if streak_days >= 2 else 1.0
     return jsonify({
-        'total_xp': total_xp,
+        'total_xp': effective_xp,
         'level': level,
         'xp_in_level': xp_in_level,
         'xp_for_next': xp_for_next,
