@@ -1041,10 +1041,9 @@ async function loadFinance() {
 
         const isPositiveType = t => t === 'income' || t === 'crypto_investment';
 
-        records.slice(0, 10).forEach(record => {
+        function makeFinanceItem(record) {
             const financeItem = document.createElement('div');
             financeItem.className = `finance-item ${record.type}`;
-
             financeItem.innerHTML = `
                 <div class="finance-item-info">
                     <div class="finance-item-category">${record.category || record.type}</div>
@@ -1055,9 +1054,32 @@ async function loadFinance() {
                     ${isPositiveType(record.type) ? '+' : '-'}£${record.amount.toFixed(2)}
                 </div>
             `;
+            return financeItem;
+        }
 
-            financeList.appendChild(financeItem);
-        });
+        function renderCollapsed() {
+            financeList.innerHTML = '';
+            financeList.appendChild(makeFinanceItem(records[0]));
+            if (records.length > 1) {
+                const btn = document.createElement('button');
+                btn.className = 'btn-secondary wins-toggle-btn';
+                btn.textContent = `Show All (${records.length})`;
+                btn.onclick = renderExpanded;
+                financeList.appendChild(btn);
+            }
+        }
+
+        function renderExpanded() {
+            financeList.innerHTML = '';
+            records.forEach(r => financeList.appendChild(makeFinanceItem(r)));
+            const btn = document.createElement('button');
+            btn.className = 'btn-secondary wins-toggle-btn';
+            btn.textContent = 'Show Less';
+            btn.onclick = renderCollapsed;
+            financeList.appendChild(btn);
+        }
+
+        renderCollapsed();
     } catch (error) {
         console.error('Error loading finance:', error);
     }
