@@ -48,14 +48,21 @@ def init_db():
                   repeat TEXT,
                   active INTEGER DEFAULT 1,
                   created_at TEXT NOT NULL,
-                  recurring INTEGER DEFAULT 0)''')
+                  recurring INTEGER DEFAULT 0,
+                  urgency TEXT DEFAULT 'low',
+                  notice_hours INTEGER DEFAULT 0)''')
 
-    # Add recurring column if it doesn't exist (for existing databases)
-    try:
-        c.execute("ALTER TABLE reminders ADD COLUMN recurring INTEGER DEFAULT 0")
-        conn.commit()
-    except Exception:
-        pass  # Column already exists
+    # Add columns if they don't exist (for existing databases)
+    for col, definition in [
+        ('recurring', 'INTEGER DEFAULT 0'),
+        ('urgency', "TEXT DEFAULT 'low'"),
+        ('notice_hours', 'INTEGER DEFAULT 0'),
+    ]:
+        try:
+            c.execute(f"ALTER TABLE reminders ADD COLUMN {col} {definition}")
+            conn.commit()
+        except Exception:
+            pass
     
     # Finance table
     c.execute('''CREATE TABLE IF NOT EXISTS finance
@@ -578,11 +585,11 @@ def reminders_api():
     
     if request.method == 'POST':
         data = request.json
-        c.execute('''INSERT INTO reminders (reminder, reminder_type, time, date, repeat, active, created_at, recurring)
-                     VALUES (?, ?, ?, ?, ?, ?, ?, ?)''',
+        c.execute('''INSERT INTO reminders (reminder, reminder_type, time, date, repeat, active, created_at, recurring, urgency, notice_hours)
+                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''',
                   (data['reminder'], data.get('reminder_type', 'daily'), data.get('time'),
                    data.get('date'), data.get('repeat'), 1, datetime.now().isoformat(),
-                   data.get('recurring', 0)))
+                   data.get('recurring', 0), data.get('urgency', 'low'), data.get('notice_hours', 0)))
         conn.commit()
         conn.close()
         return jsonify({'success': True})
@@ -624,7 +631,9 @@ def reminders_api():
                 'date': reminder[4] if len(reminder) > 4 else None,
                 'repeat': reminder[5] if len(reminder) > 5 else None,
                 'active': reminder[6] if len(reminder) > 6 else 1,
-                'recurring': reminder[8] if len(reminder) > 8 else 0
+                'recurring': reminder[8] if len(reminder) > 8 else 0,
+                'urgency': reminder[9] if len(reminder) > 9 else 'low',
+                'notice_hours': reminder[10] if len(reminder) > 10 else 0
             })
         
         return jsonify(reminders_list)

@@ -141,16 +141,20 @@ if table_exists('reminders'):
         except Exception as e:
             print(f"   ⚠️  Warning: {e}")
     else:
-        # Check for recurring column (added in later version)
-        if not column_exists('reminders', 'recurring'):
-            try:
-                c.execute("ALTER TABLE reminders ADD COLUMN recurring INTEGER DEFAULT 0")
-                conn.commit()
-                print("   ✅ Added 'recurring' column to reminders")
-            except Exception as e:
-                print(f"   ⚠️  Warning: {e}")
-        else:
-            print("   ✅ Reminders table is up to date")
+        # Check for additional columns
+        for col, definition, label in [
+            ('recurring', 'INTEGER DEFAULT 0', 'recurring'),
+            ('urgency', "TEXT DEFAULT 'low'", 'urgency'),
+            ('notice_hours', 'INTEGER DEFAULT 0', 'notice_hours'),
+        ]:
+            if not column_exists('reminders', col):
+                try:
+                    c.execute(f"ALTER TABLE reminders ADD COLUMN {col} {definition}")
+                    conn.commit()
+                    print(f"   ✅ Added '{label}' column to reminders")
+                except Exception as e:
+                    print(f"   ⚠️  Warning: {e}")
+        print("   ✅ Reminders table is up to date")
 else:
     c.execute('''CREATE TABLE reminders
                  (id INTEGER PRIMARY KEY AUTOINCREMENT,

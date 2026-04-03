@@ -16,9 +16,25 @@ function getThemeIcon() {
     return '/static/img/icon-b.png';
 }
 
+function getThemeBell(urgency) {
+    // High urgency: always red bell regardless of theme
+    if (urgency === 'high') return '/static/img/Red_Bell.png';
+    // Low urgency: bell matches theme
+    const theme = document.documentElement.getAttribute('data-theme') || '1';
+    const isLight = document.documentElement.classList.contains('light-mode');
+    if (theme === '1') return isLight ? '/static/img/PurpleBell.png' : '/static/img/GreenBell.png';
+    if (theme === '2') return '/static/img/OrangeBell.png';
+    if (theme === '3') return '/static/img/BlueBell.png';
+    return '/static/img/GreenBell.png';
+}
+
 function updateThemeIcons() {
     const icon = getThemeIcon();
     document.querySelectorAll('.goal-done-icon, .day-logo-badge').forEach(img => img.src = icon);
+    // Update reminder list bell icons to match current theme
+    document.querySelectorAll('.reminder-bell-icon[data-urgency]').forEach(img => {
+        img.src = getThemeBell(img.dataset.urgency);
+    });
 }
 
 // ── Colour theme switcher ────────────────────────────────────
@@ -29,6 +45,7 @@ function applyColorTheme(themeNum) {
         btn.classList.toggle('active', btn.dataset.theme === String(themeNum));
     });
     updateThemeIcons();
+    checkReminderAlerts();
     rebuildAllCharts();
 }
 
@@ -65,6 +82,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const isLight = document.documentElement.classList.toggle('light-mode');
         localStorage.setItem('theme', isLight ? 'light' : 'dark');
         themeToggle.textContent = isLight ? '☽' : '☀';
+        checkReminderAlerts();
         rebuildAllCharts();
     });
 });
@@ -1357,14 +1375,91 @@ async function deleteCalendarEvent(id) {
 }
 
 // Reminders functionality
+async function checkReminderAlerts() {
+    try {
+        const response = await fetch('/api/reminders?type=all');
+        const reminders = await response.json();
+        const now = new Date();
+        let hasHighAlert = false;
+
+        for (const r of reminders) {
+            if (r.urgency !== 'high' || !r.active) continue;
+            // Build the event datetime
+            let eventDt = null;
+            if (r.date) {
+                const timeStr = r.time || '00:00';
+                eventDt = new Date(`${r.date}T${timeStr}`);
+            } else if (r.reminder_type === 'daily' && r.time) {
+                // For daily reminders, check today's occurrence
+                const todayStr = dateToLocalString(now);
+                eventDt = new Date(`${todayStr}T${r.time}`);
+            }
+            if (!eventDt) continue;
+            const msUntil = eventDt - now;
+            const noticeMs = (r.notice_hours || 0) * 3600 * 1000;
+            // Show alert if we're within the notice window and event hasn't passed
+            if (msUntil > 0 && msUntil <= noticeMs) {
+                hasHighAlert = true;
+                break;
+            }
+        }
+
+        const badge = document.getElementById('reminderBellBadge');
+        const heading = document.getElementById('remindersHeading');
+        if (badge) {
+            badge.src = hasHighAlert ? '/static/img/Red_Bell.png' : getThemeBell('low');
+            badge.style.display = 'block';
+        }
+        if (heading) {
+            heading.classList.toggle('alert-active', hasHighAlert);
+        }
+    } catch (e) {
+        console.error('Error checking reminder alerts:', e);
+    }
+}
+
+function getUrgencyFromToggle(toggleId) {
+    const toggle = document.getElementById(toggleId);
+    const active = toggle ? toggle.querySelector('.urgency-btn.active') : null;
+    return active ? active.dataset.urgency : 'low';
+}
+
+function getNoticeHoursFromInput(inputId) {
+    const inp = document.getElementById(inputId);
+    return inp ? (parseInt(inp.value) || 0) : 0;
+}
+
+function setupUrgencyToggle(toggleId, noticeInputId) {
+    const toggle = document.getElementById(toggleId);
+    if (!toggle) return;
+    toggle.querySelectorAll('.urgency-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            toggle.querySelectorAll('.urgency-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            const inp = document.getElementById(noticeInputId);
+            if (inp) inp.style.display = btn.dataset.urgency === 'high' ? 'block' : 'none';
+        });
+    });
+}
+
 function setupReminderForms() {
+    setupUrgencyToggle('dailyUrgencyToggle', 'dailyNoticeHours');
+    setupUrgencyToggle('onetimeUrgencyToggle', 'onetimeNoticeHours');
+    setupUrgencyToggle('recurringUrgencyToggle', 'recurringNoticeHours');
+
     // Daily reminders
     document.getElementById('dailyReminderForm').addEventListener('submit', async (e) => {
         e.preventDefault();
         const reminder = e.target.querySelector('.task-input').value;
         const time = document.getElementById('reminderTime').value;
-        await addReminder(reminder, 'daily', time);
+        const urgency = getUrgencyFromToggle('dailyUrgencyToggle');
+        const notice_hours = getNoticeHoursFromInput('dailyNoticeHours');
+        await addReminder(reminder, 'daily', time, null, 0, urgency, notice_hours);
         e.target.reset();
+        // Reset urgency toggle visual
+        document.querySelectorAll('#dailyUrgencyToggle .urgency-btn').forEach(b => b.classList.remove('active'));
+        document.querySelector('#dailyUrgencyToggle .urgency-low').classList.add('active');
+        document.getElementById('dailyNoticeHours').style.display = 'none';
     });
 
     // One-time reminders
@@ -1373,8 +1468,13 @@ function setupReminderForms() {
         const reminder = e.target.querySelector('.task-input').value;
         const date = document.getElementById('reminderDate').value;
         const time = document.getElementById('reminderTimeOnce').value;
-        await addReminder(reminder, 'onetime', time, date);
+        const urgency = getUrgencyFromToggle('onetimeUrgencyToggle');
+        const notice_hours = getNoticeHoursFromInput('onetimeNoticeHours');
+        await addReminder(reminder, 'onetime', time, date, 0, urgency, notice_hours);
         e.target.reset();
+        document.querySelectorAll('#onetimeUrgencyToggle .urgency-btn').forEach(b => b.classList.remove('active'));
+        document.querySelector('#onetimeUrgencyToggle .urgency-low').classList.add('active');
+        document.getElementById('onetimeNoticeHours').style.display = 'none';
     });
 
     // Recurring reminders
@@ -1383,21 +1483,27 @@ function setupReminderForms() {
         const reminder = e.target.querySelector('.task-input').value;
         const type = document.getElementById('recurringType').value;
         const time = document.getElementById('reminderTimeRecurring').value;
-        await addReminder(reminder, type, time, null, 1);
+        const urgency = getUrgencyFromToggle('recurringUrgencyToggle');
+        const notice_hours = getNoticeHoursFromInput('recurringNoticeHours');
+        await addReminder(reminder, type, time, null, 1, urgency, notice_hours);
         e.target.reset();
+        document.querySelectorAll('#recurringUrgencyToggle .urgency-btn').forEach(b => b.classList.remove('active'));
+        document.querySelector('#recurringUrgencyToggle .urgency-low').classList.add('active');
+        document.getElementById('recurringNoticeHours').style.display = 'none';
     });
 }
 
-async function addReminder(reminder, reminderType, time, date = null, recurring = 0) {
+async function addReminder(reminder, reminderType, time, date = null, recurring = 0, urgency = 'low', notice_hours = 0) {
     try {
         const response = await fetch('/api/reminders', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ reminder, reminder_type: reminderType, time, date, recurring })
+            body: JSON.stringify({ reminder, reminder_type: reminderType, time, date, recurring, urgency, notice_hours })
         });
-        
+
         if (response.ok) {
             loadAllReminders();
+            checkReminderAlerts();
         }
     } catch (error) {
         console.error('Error adding reminder:', error);
@@ -1443,18 +1549,20 @@ async function loadRemindersByType(type, listId, recurring = false) {
         filteredReminders.forEach(reminder => {
             const reminderItem = document.createElement('div');
             reminderItem.className = 'task-item';
-            
+
             const timeStr = reminder.time ? ` at ${reminder.time}` : '';
             const dateStr = reminder.date ? ` on ${reminder.date}` : '';
-            const typeLabel = reminder.recurring ? reminder.reminder_type : '';
-            
+            const typeLabel = reminder.recurring ? reminder.reminder_type + ' ' : '';
+            const bellSrc = getThemeBell(reminder.urgency || 'low');
+
             reminderItem.innerHTML = `
-                <input type="checkbox" ${!reminder.active ? 'checked' : ''} 
+                <input type="checkbox" ${!reminder.active ? 'checked' : ''}
                        onchange="toggleReminder(${reminder.id}, this.checked)">
-                <div class="task-item-text">${typeLabel} ${reminder.reminder}${timeStr}${dateStr}</div>
+                <img src="${bellSrc}" class="reminder-bell-icon" data-urgency="${reminder.urgency || 'low'}" alt="">
+                <div class="task-item-text">${typeLabel}${reminder.reminder}${timeStr}${dateStr}</div>
                 <button class="task-item-delete" onclick="deleteReminder(${reminder.id})">Delete</button>
             `;
-            
+
             remindersList.appendChild(reminderItem);
         });
     } catch (error) {
@@ -2044,6 +2152,8 @@ async function initializeApp() {
     loadFinance();
     setupReminderForms();
     loadAllReminders();
+    checkReminderAlerts();
+    setInterval(checkReminderAlerts, 60000);
     document.getElementById('weightDate').value = getLocalDateString();
     loadWeightLog();
     document.getElementById('healthDate').value = getLocalDateString();

@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>WinnersTrack</title>
+    <link rel="icon" type="image/png" href="/static/img/icon.png?v=2">
+    <link rel="apple-touch-icon" href="/static/img/icon.png?v=2">
+    <link rel="manifest" href="/static/manifest.json">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
@@ -37,7 +40,7 @@
             <button class="tab-btn active" data-tab="dashboard">Dashboard</button>
             <button class="tab-btn" data-tab="calendar">Calendar</button>
             <button class="tab-btn" data-tab="goals">Goals</button>
-            <button class="tab-btn" data-tab="reminders">Reminders</button>
+            <button class="tab-btn" data-tab="reminders" style="position:relative;">Reminders<img id="reminderBellBadge" src="" alt="" style="display:none;position:absolute;top:-8px;right:-8px;width:22px;height:22px;"></button>
             <button class="tab-btn" data-tab="finance">Finance</button>
             <button class="tab-btn" data-tab="health">Health</button>
         </nav>
@@ -418,7 +421,7 @@
 
         <!-- Reminders Tab -->
         <div class="tab-content" id="reminders">
-            <h2>Reminders</h2>
+            <h2 id="remindersHeading">Reminders</h2>
             
             <!-- Daily Reminders -->
             <div class="collapsible-section">
@@ -431,6 +434,11 @@
                         <form id="dailyReminderForm">
                             <input type="text" class="task-input" placeholder="Add a daily reminder..." required style="flex: 2;">
                             <input type="time" id="reminderTime" class="task-input" style="flex: 1;">
+                            <div class="urgency-toggle" id="dailyUrgencyToggle">
+                                <button type="button" class="urgency-btn urgency-low active" data-urgency="low">Low</button>
+                                <button type="button" class="urgency-btn urgency-high" data-urgency="high">High</button>
+                            </div>
+                            <input type="number" id="dailyNoticeHours" class="task-input notice-hours-input" placeholder="Hrs notice" min="1" max="720" style="display:none;flex:0 0 90px;">
                             <button type="submit" class="btn-primary">Add</button>
                         </form>
                     </div>
@@ -450,6 +458,11 @@
                             <input type="text" class="task-input" placeholder="Reminder text..." required style="flex: 2;">
                             <input type="date" id="reminderDate" class="task-input" style="flex: 1;">
                             <input type="time" id="reminderTimeOnce" class="task-input" style="flex: 1;">
+                            <div class="urgency-toggle" id="onetimeUrgencyToggle">
+                                <button type="button" class="urgency-btn urgency-low active" data-urgency="low">Low</button>
+                                <button type="button" class="urgency-btn urgency-high" data-urgency="high">High</button>
+                            </div>
+                            <input type="number" id="onetimeNoticeHours" class="task-input notice-hours-input" placeholder="Hrs notice" min="1" max="720" style="display:none;flex:0 0 90px;">
                             <button type="submit" class="btn-primary">Add</button>
                         </form>
                     </div>
@@ -473,6 +486,11 @@
                                 <option value="monthly">Monthly</option>
                             </select>
                             <input type="time" id="reminderTimeRecurring" class="task-input" style="flex: 1;">
+                            <div class="urgency-toggle" id="recurringUrgencyToggle">
+                                <button type="button" class="urgency-btn urgency-low active" data-urgency="low">Low</button>
+                                <button type="button" class="urgency-btn urgency-high" data-urgency="high">High</button>
+                            </div>
+                            <input type="number" id="recurringNoticeHours" class="task-input notice-hours-input" placeholder="Hrs notice" min="1" max="720" style="display:none;flex:0 0 90px;">
                             <button type="submit" class="btn-primary">Add</button>
                         </form>
                     </div>
@@ -692,51 +710,53 @@
                     </div>
                 </div>
 
-                <!-- Centre: Daily Summary -->
-                <div class="health-summary-right">
-                    <h3>Daily Summary</h3>
+                <!-- Right column: Daily Summary + Daily Weight -->
+                <div class="health-right-column">
+                    <div class="health-summary-right">
+                        <h3>Daily Summary</h3>
 
-                    <div class="health-summary-block">
-                        <div class="health-summary-label">Calories <span id="summaryCalConsumed">0</span> / <span id="summaryCalTarget">—</span> kcal</div>
-                        <div class="calories-bar-wrap">
-                            <div class="calories-bar-fill" id="caloriesBarFill" style="width:0%"></div>
+                        <div class="health-summary-block">
+                            <div class="health-summary-label">Calories <span id="summaryCalConsumed">0</span> / <span id="summaryCalTarget">—</span> kcal</div>
+                            <div class="calories-bar-wrap">
+                                <div class="calories-bar-fill" id="caloriesBarFill" style="width:0%"></div>
+                            </div>
+                        </div>
+
+                        <div class="health-summary-block">
+                            <div class="health-summary-label">Macros</div>
+                            <div class="health-macro-chart-wrap">
+                                <canvas id="macroChart"></canvas>
+                            </div>
+                            <div class="health-macro-legend">
+                                <span class="macro-legend-item carbs-legend">Carbs: <b id="summaryCarbs">0</b>g</span>
+                                <span class="macro-legend-item protein-legend">Protein: <b id="summaryProtein">0</b>g</span>
+                                <span class="macro-legend-item fat-legend">Fat: <b id="summaryFat">0</b>g</span>
+                            </div>
+                        </div>
+
+                        <div class="health-summary-block">
+                            <div class="health-summary-label">Water Intake</div>
+                            <div class="water-tracker" id="waterTracker"></div>
+                            <div class="water-count-label"><span id="waterCount">0</span> / 8 glasses</div>
+                        </div>
+
+                        <div class="health-summary-block">
+                            <div class="health-summary-label">Today's Weight</div>
+                            <div id="summaryWeight" style="font-size:1.4rem;font-weight:700;color:var(--color-primary)">—</div>
                         </div>
                     </div>
 
-                    <div class="health-summary-block">
-                        <div class="health-summary-label">Macros</div>
-                        <div class="health-macro-chart-wrap">
-                            <canvas id="macroChart"></canvas>
+                    <!-- Daily Weight: below Daily Summary, right of Dinner & Snacks -->
+                    <div class="weight-checkin-card">
+                        <h3>Daily Weight</h3>
+                        <div class="weight-form-row">
+                            <input type="date" id="weightDate">
+                            <input type="number" id="weightKg" step="0.1" min="1" placeholder="kg">
+                            <button class="btn-teal" onclick="saveWeightEntry()">Log</button>
                         </div>
-                        <div class="health-macro-legend">
-                            <span class="macro-legend-item carbs-legend">Carbs: <b id="summaryCarbs">0</b>g</span>
-                            <span class="macro-legend-item protein-legend">Protein: <b id="summaryProtein">0</b>g</span>
-                            <span class="macro-legend-item fat-legend">Fat: <b id="summaryFat">0</b>g</span>
+                        <div class="weight-chart-container">
+                            <canvas id="weightChart"></canvas>
                         </div>
-                    </div>
-
-                    <div class="health-summary-block">
-                        <div class="health-summary-label">Water Intake</div>
-                        <div class="water-tracker" id="waterTracker"></div>
-                        <div class="water-count-label"><span id="waterCount">0</span> / 8 glasses</div>
-                    </div>
-
-                    <div class="health-summary-block">
-                        <div class="health-summary-label">Today's Weight</div>
-                        <div id="summaryWeight" style="font-size:1.4rem;font-weight:700;color:var(--color-primary)">—</div>
-                    </div>
-                </div>
-
-                <!-- Right: Daily Weight -->
-                <div class="weight-checkin-card">
-                    <h3>Daily Weight</h3>
-                    <div class="weight-form-row">
-                        <input type="date" id="weightDate">
-                        <input type="number" id="weightKg" step="0.1" min="1" placeholder="kg">
-                        <button class="btn-teal" onclick="saveWeightEntry()">Log</button>
-                    </div>
-                    <div class="weight-chart-container">
-                        <canvas id="weightChart"></canvas>
                     </div>
                 </div>
             </div>
