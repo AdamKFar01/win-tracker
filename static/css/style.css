@@ -911,6 +911,34 @@ h1 {
     accent-color: var(--color-primary);
 }
 
+.goal-tick {
+    width: 20px;
+    height: 20px;
+    min-width: 20px;
+    border: 2px solid rgba(var(--color-primary-rgb), 0.55);
+    border-radius: 4px;
+    cursor: pointer;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.15s, border-color 0.15s;
+}
+.goal-tick:hover {
+    border-color: var(--color-primary);
+}
+.goal-tick.goal-tick-done {
+    background: var(--color-primary);
+    border-color: var(--color-primary);
+}
+.goal-tick.goal-tick-done::after {
+    content: '✓';
+    color: #fff;
+    font-size: 13px;
+    font-weight: 700;
+    line-height: 1;
+}
+
 .task-item-text { flex: 1; color: #ffffff; }
 
 .task-item.completed .task-item-text {

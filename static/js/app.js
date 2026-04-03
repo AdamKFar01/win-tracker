@@ -832,16 +832,21 @@ async function loadTasksByPeriod(period, listId, taskType) {
             const taskItem = document.createElement('div');
             taskItem.className = 'task-item' + (task.completed === 1 ? ' completed' : '');
 
-            const checkbox = document.createElement('input');
-            checkbox.type = 'checkbox';
-            checkbox.checked = task.completed === 1;
-            checkbox.addEventListener('change', () => toggleTask(task.id, checkbox.checked));
+            // Custom tick box — more reliable than native checkbox in this context
+            const tick = document.createElement('div');
+            tick.className = 'goal-tick' + (task.completed === 1 ? ' goal-tick-done' : '');
+            tick.onclick = () => {
+                const nowDone = !tick.classList.contains('goal-tick-done');
+                tick.classList.toggle('goal-tick-done', nowDone);
+                taskItem.classList.toggle('completed', nowDone);
+                toggleTask(task.id, nowDone);
+            };
 
             const textDiv = document.createElement('div');
             textDiv.className = 'task-item-text';
             textDiv.textContent = task.task;
 
-            taskItem.appendChild(checkbox);
+            taskItem.appendChild(tick);
             taskItem.appendChild(textDiv);
 
             if (task.xp_reward > 0) {
