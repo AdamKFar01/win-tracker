@@ -1,3 +1,9 @@
+// Apply saved colour theme immediately so charts use correct CSS vars from first load
+(function() {
+    const t = localStorage.getItem('colorTheme');
+    if (t) document.documentElement.setAttribute('data-theme', t);
+})();
+
 // ── Colour helpers ───────────────────────────────────────────
 function cssVar(name) {
     return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
@@ -508,6 +514,7 @@ let pillarsChartInstance = null;
 const pillarsLogoImg = new Image();
 
 function loadPillarsChart(scores) {
+    pillarsLogoImg.onload = () => { if (pillarsChartInstance) pillarsChartInstance.update(); };
     pillarsLogoImg.src = getThemeIcon();
     const ctx = document.getElementById('pillarsChart').getContext('2d');
     const data = [
