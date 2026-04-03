@@ -692,7 +692,7 @@
                     </div>
                 </div>
 
-                <!-- Right: Daily Summary -->
+                <!-- Centre: Daily Summary -->
                 <div class="health-summary-right">
                     <h3>Daily Summary</h3>
 
@@ -726,18 +726,18 @@
                         <div id="summaryWeight" style="font-size:1.4rem;font-weight:700;color:var(--color-primary)">—</div>
                     </div>
                 </div>
-            </div>
 
-            <!-- Daily Weight Check-in -->
-            <div class="weight-checkin-card">
-                <h3>Daily Weight</h3>
-                <div class="weight-form-row">
-                    <input type="date" id="weightDate">
-                    <input type="number" id="weightKg" step="0.1" min="1" placeholder="kg">
-                    <button class="btn-teal" onclick="saveWeightEntry()">Log</button>
-                </div>
-                <div class="weight-chart-container">
-                    <canvas id="weightChart"></canvas>
+                <!-- Right: Daily Weight -->
+                <div class="weight-checkin-card">
+                    <h3>Daily Weight</h3>
+                    <div class="weight-form-row">
+                        <input type="date" id="weightDate">
+                        <input type="number" id="weightKg" step="0.1" min="1" placeholder="kg">
+                        <button class="btn-teal" onclick="saveWeightEntry()">Log</button>
+                    </div>
+                    <div class="weight-chart-container">
+                        <canvas id="weightChart"></canvas>
+                    </div>
                 </div>
             </div>
 
