@@ -56,6 +56,7 @@ function rebuildAllCharts() {
     if (balanceChartInstance)          { balanceChartInstance.destroy();          balanceChartInstance          = null; }
     if (weightChartInstance)           { weightChartInstance.destroy();           weightChartInstance           = null; }
     if (nutritionWeekChartInstance)    { nutritionWeekChartInstance.destroy();    nutritionWeekChartInstance    = null; }
+    if (financeMonthlyChartInstance)   { financeMonthlyChartInstance.destroy();   financeMonthlyChartInstance   = null; }
     loadPillarScores();
     loadWeekChart();
     loadFinance();
@@ -860,9 +861,11 @@ function setupTaskForms() {
     function bindGoalForm(formId, period) {
         document.getElementById(formId).addEventListener('submit', async (e) => {
             e.preventDefault();
-            const xpInput = e.target.querySelector('.task-xp-input');
-            const xpReward = xpInput ? (parseInt(xpInput.value) || 0) : 0;
-            await addTask(e.target.querySelector('.task-input').value, 'goal', period, xpReward);
+            const xpInput    = e.target.querySelector('.task-xp-input');
+            const xpReward   = xpInput ? (parseInt(xpInput.value) || 0) : 0;
+            const priorInput = e.target.querySelector('.priority-select');
+            const priority   = priorInput ? priorInput.value : 'medium';
+            await addTask(e.target.querySelector('.task-input').value, 'goal', period, xpReward, priority);
             e.target.reset();
         });
     }
@@ -872,16 +875,16 @@ function setupTaskForms() {
     bindGoalForm('lifelongGoalForm', 'lifelong');
 }
 
-async function addTask(task, taskType, period, xpReward = 0) {
+async function addTask(task, taskType, period, xpReward = 0, priority = 'medium') {
     try {
         const response = await fetch('/api/tasks', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ task, task_type: taskType, period, xp_reward: xpReward })
+            body: JSON.stringify({ task, task_type: taskType, period, xp_reward: xpReward, priority })
         });
         
         if (response.ok) {
-            loadAllTasks();
+            loadAllTasks().then(() => populateConditionsGoalSelect());
         }
     } catch (error) {
         console.error('Error adding task:', error);
@@ -923,11 +926,18 @@ async function loadTasksByPeriod(period, listId, taskType) {
                 toggleTask(task.id, nowDone);
             };
 
+            const priority = task.priority || 'medium';
+            const priBadge = document.createElement('span');
+            priBadge.className = `priority-badge priority-${priority}`;
+            priBadge.textContent = priority.charAt(0).toUpperCase();
+            priBadge.title = priority.charAt(0).toUpperCase() + priority.slice(1) + ' priority';
+
             const textDiv = document.createElement('div');
             textDiv.className = 'task-item-text';
             textDiv.textContent = task.task;
 
             taskItem.appendChild(tick);
+            taskItem.appendChild(priBadge);
             taskItem.appendChild(textDiv);
 
             const periodDefaults = { weekly: 50, monthly: 100, yearly: 200, lifelong: 500, today: 25 };
@@ -944,6 +954,24 @@ async function loadTasksByPeriod(period, listId, taskType) {
             taskItem.appendChild(deleteBtn);
 
             tasksList.appendChild(taskItem);
+
+            // Conditions progress bar (async, appended after render)
+            fetch(`/api/goal-conditions?task_id=${task.id}`)
+                .then(r => r.json())
+                .then(conds => {
+                    if (!conds.length) return;
+                    const done  = conds.filter(c => c.completed).length;
+                    const total = conds.length;
+                    const pct   = Math.round((done / total) * 100);
+                    const bar   = document.createElement('div');
+                    bar.className = 'goal-progress-wrap';
+                    bar.innerHTML = `
+                        <div class="goal-progress-bar"><div class="goal-progress-fill" style="width:${pct}%"></div></div>
+                        <span class="goal-progress-label">${done}/${total}</span>
+                    `;
+                    taskItem.appendChild(bar);
+                })
+                .catch(() => {});
         });
     } catch (error) {
         console.error('Error loading tasks:', error);
@@ -969,7 +997,7 @@ async function deleteTask(id) {
     
     try {
         await fetch(`/api/tasks?id=${id}`, { method: 'DELETE' });
-        loadAllTasks();
+        loadAllTasks().then(() => populateConditionsGoalSelect());
     } catch (error) {
         console.error('Error deleting task:', error);
     }
@@ -1058,6 +1086,238 @@ async function loadRecipes() {
     }
 }
 
+// ── Goal Conditions ───────────────────────────────────────────
+
+async function populateConditionsGoalSelect() {
+    const select = document.getElementById('conditionsGoalSelect');
+    const current = select.value;
+    while (select.options.length > 1) select.remove(1);
+
+    const res = await fetch('/api/tasks?type=goal&period=all');
+    const tasks = await res.json();
+
+    const periodLabel = { weekly: 'Weekly', monthly: 'Monthly', yearly: 'Yearly', lifelong: 'Lifelong', today: 'Today' };
+    tasks.forEach(t => {
+        const opt = document.createElement('option');
+        opt.value = t.id;
+        const label = periodLabel[t.period] || t.period;
+        opt.textContent = `[${label}] ${t.task}`;
+        select.appendChild(opt);
+    });
+    if (current) select.value = current;
+}
+
+async function loadConditions() {
+    const select = document.getElementById('conditionsGoalSelect');
+    const taskId = select.value;
+    const panel = document.getElementById('conditionsPanel');
+    if (!taskId) { panel.style.display = 'none'; return; }
+    panel.style.display = 'block';
+
+    const res = await fetch(`/api/goal-conditions?task_id=${taskId}`);
+    const conditions = await res.json();
+    const list = document.getElementById('conditionsList');
+    list.innerHTML = '';
+    if (conditions.length === 0) {
+        list.innerHTML = '<p class="conditions-empty">No conditions yet.</p>';
+        return;
+    }
+    conditions.forEach(c => {
+        const row = document.createElement('div');
+        row.className = 'condition-item' + (c.completed ? ' condition-done' : '');
+        row.innerHTML = `
+            <span class="condition-check" onclick="toggleCondition(${c.id}, ${c.completed ? 0 : 1})">${c.completed ? '✔' : '○'}</span>
+            <span class="condition-text">${c.condition_text}</span>
+            <button class="task-item-delete" onclick="deleteCondition(${c.id})">✕</button>
+        `;
+        list.appendChild(row);
+    });
+}
+
+async function toggleCondition(id, newVal) {
+    await fetch('/api/goal-conditions', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, completed: newVal })
+    });
+    loadConditions();
+}
+
+async function deleteCondition(id) {
+    await fetch(`/api/goal-conditions?id=${id}`, { method: 'DELETE' });
+    loadConditions();
+}
+
+document.getElementById('conditionAddForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const taskId = document.getElementById('conditionsGoalSelect').value;
+    const text   = document.getElementById('conditionText').value.trim();
+    if (!taskId || !text) return;
+    await fetch('/api/goal-conditions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ task_id: taskId, condition_text: text })
+    });
+    document.getElementById('conditionText').value = '';
+    loadConditions();
+});
+
+// ── Yume ──────────────────────────────────────────────────────
+
+async function loadYume() {
+    const res = await fetch('/api/yume/categories');
+    const cats = await res.json();
+    const container = document.getElementById('yumeCategoriesList');
+    container.innerHTML = '';
+    if (cats.length === 0) {
+        container.innerHTML = '<p style="color:#8b92b0;text-align:center;padding:40px 0;">No categories yet. Add one above to start your vision board.</p>';
+        return;
+    }
+    for (const cat of cats) {
+        const section = document.createElement('div');
+        section.className = 'yume-category-section';
+        section.id = `yumecat-${cat.id}`;
+
+        const header = document.createElement('div');
+        header.className = 'yume-category-header';
+        header.innerHTML = `
+            <h3 class="yume-category-name">${cat.name}</h3>
+            <button class="task-item-delete yume-cat-del" onclick="deleteYumeCategory(${cat.id})">✕</button>
+        `;
+        section.appendChild(header);
+
+        // Items list
+        const itemsDiv = document.createElement('div');
+        itemsDiv.className = 'yume-items-list';
+        itemsDiv.id = `yume-items-${cat.id}`;
+        section.appendChild(itemsDiv);
+
+        // Add item form
+        const form = document.createElement('form');
+        form.className = 'yume-add-item-form';
+        form.innerHTML = `
+            <input type="text" class="task-input yume-item-input" placeholder="Add a dream or goal..." required>
+            <select class="yume-rank-select">
+                <option value="S">S</option>
+                <option value="A">A</option>
+                <option value="B" selected>B</option>
+                <option value="C">C</option>
+            </select>
+            <button type="submit" class="btn-primary btn-sm">Add</button>
+        `;
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const input  = form.querySelector('input');
+            const select = form.querySelector('select');
+            const text = input.value.trim();
+            if (!text) return;
+            await fetch('/api/yume/items', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ category_id: cat.id, text, rank: select.value })
+            });
+            input.value = '';
+            await loadYumeItems(cat.id);
+        });
+        section.appendChild(form);
+
+        // Progress bar placeholder — filled by loadYumeItems
+        const progressWrap = document.createElement('div');
+        progressWrap.className = 'yume-progress-wrap';
+        progressWrap.id = `yume-progress-${cat.id}`;
+        header.insertBefore(progressWrap, header.querySelector('.yume-cat-del'));
+
+        container.appendChild(section);
+        await loadYumeItems(cat.id);
+    }
+}
+
+const yumeExpandedCats = new Set();
+
+async function loadYumeItems(catId) {
+    const res = await fetch(`/api/yume/items?category_id=${catId}`);
+    const items = await res.json();
+    const div = document.getElementById(`yume-items-${catId}`);
+    if (!div) return;
+    div.innerHTML = '';
+    // Update progress bar
+    const progressWrap = document.getElementById(`yume-progress-${catId}`);
+    if (progressWrap) {
+        if (items.length === 0) {
+            progressWrap.innerHTML = '';
+        } else {
+            const done  = items.filter(i => i.completed).length;
+            const total = items.length;
+            const pct   = Math.round((done / total) * 100);
+            progressWrap.innerHTML = `
+                <div class="yume-prog-bar"><div class="yume-prog-fill" style="width:${pct}%"></div></div>
+                <span class="yume-prog-label">${done}/${total}</span>
+            `;
+        }
+    }
+
+    if (items.length === 0) {
+        div.innerHTML = '<p class="yume-empty">No entries yet.</p>';
+        return;
+    }
+    const limit = 3;
+    const expanded = yumeExpandedCats.has(catId);
+    const visible = expanded ? items : items.slice(0, limit);
+
+    visible.forEach(item => {
+        const done = item.completed === 1;
+        const row = document.createElement('div');
+        row.className = 'yume-item' + (done ? ' yume-item-done' : '');
+        row.innerHTML = `
+            <span class="yume-rank yume-rank-${(item.rank||'B').toLowerCase()}">${item.rank||'B'}</span>
+            <span class="yume-item-text">${item.text}</span>
+            <button class="yume-tick${done ? ' yume-tick-done' : ''}" onclick="toggleYumeItem(${item.id}, ${done ? 0 : 1}, ${catId})" title="${done ? 'Mark unfulfilled' : 'Mark fulfilled'}">${done ? '✔' : '○'}</button>
+        `;
+        div.appendChild(row);
+    });
+
+    if (items.length > limit) {
+        const toggle = document.createElement('button');
+        toggle.className = 'yume-show-more';
+        if (expanded) {
+            toggle.textContent = 'Show less';
+            toggle.onclick = () => { yumeExpandedCats.delete(catId); loadYumeItems(catId); };
+        } else {
+            toggle.textContent = `Show all (${items.length - limit} more)`;
+            toggle.onclick = () => { yumeExpandedCats.add(catId); loadYumeItems(catId); };
+        }
+        div.appendChild(toggle);
+    }
+}
+
+async function toggleYumeItem(id, newVal, catId) {
+    await fetch('/api/yume/items', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, completed: newVal })
+    });
+    loadYumeItems(catId);
+}
+
+async function deleteYumeCategory(id) {
+    if (!confirm('Delete this category and all its entries?')) return;
+    await fetch(`/api/yume/categories?id=${id}`, { method: 'DELETE' });
+    loadYume();
+}
+
+document.getElementById('yumeCategoryForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const name = document.getElementById('yumeCategoryName').value.trim();
+    if (!name) return;
+    await fetch('/api/yume/categories', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name })
+    });
+    document.getElementById('yumeCategoryName').value = '';
+    loadYume();
+});
+
 // Finance functionality
 document.getElementById('financeForm').addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -1088,6 +1348,42 @@ document.getElementById('financeForm').addEventListener('submit', async (e) => {
 });
 
 let balanceChartInstance = null;
+let financeMonthlyChartInstance = null;
+
+async function loadFinanceMonthlyChart() {
+    try {
+        const res  = await fetch('/api/finance/monthly');
+        const data = await res.json();
+        if (!data.length) return;
+
+        const isLight   = document.documentElement.classList.contains('light-mode');
+        const gridColor = isLight ? 'rgba(0,0,0,0.07)' : 'rgba(255,255,255,0.07)';
+        const textColor = isLight ? '#555' : '#a0aec0';
+
+        const ctx = document.getElementById('financeMonthlyChart').getContext('2d');
+        if (financeMonthlyChartInstance) financeMonthlyChartInstance.destroy();
+        financeMonthlyChartInstance = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: data.map(d => d.month),
+                datasets: [
+                    { label: 'Income',   data: data.map(d => d.income),   backgroundColor: 'rgba(52,211,153,0.7)',  borderColor: '#34d399', borderWidth: 1 },
+                    { label: 'Expenses', data: data.map(d => d.expenses), backgroundColor: 'rgba(239,68,68,0.65)', borderColor: '#ef4444', borderWidth: 1 }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: { mode: 'index', intersect: false },
+                scales: {
+                    x: { grid: { color: gridColor }, ticks: { color: textColor } },
+                    y: { grid: { color: gridColor }, ticks: { color: textColor } }
+                },
+                plugins: { legend: { labels: { color: textColor, boxWidth: 12 } } }
+            }
+        });
+    } catch (e) { console.error('Error loading monthly finance chart:', e); }
+}
 
 async function loadFinance() {
     try {
@@ -1244,6 +1540,7 @@ async function loadFinance() {
         }
 
         renderCollapsed();
+        loadFinanceMonthlyChart();
     } catch (error) {
         console.error('Error loading finance:', error);
     }
@@ -1778,6 +2075,16 @@ async function loadDailyGoals(dateStr) {
             areaEl.style.pointerEvents = isPast ? 'none' : '';
             areaEl.style.opacity = isPast ? '0.6' : '';
         }
+
+        const streakEl  = document.getElementById('dailyStreak');
+        const streakNum = document.getElementById('dailyStreakCount');
+        const streak    = data.streak || 0;
+        if (streak > 0) {
+            streakNum.textContent = streak;
+            streakEl.style.display = '';
+        } else {
+            streakEl.style.display = 'none';
+        }
     } catch (error) {
         console.error('Error loading daily goals:', error);
     }
@@ -1855,11 +2162,12 @@ async function loadHealthMetrics() {
         healthMetricsCache = data;
 
         // Populate form
-        document.getElementById('hmWeight').value    = data.weight_kg    || '';
-        document.getElementById('hmHeight').value    = data.height_cm    || '';
-        document.getElementById('hmAge').value       = data.age          || '';
-        document.getElementById('hmSex').value       = data.sex          || 'male';
-        document.getElementById('hmIntensity').value = data.exercise_intensity || 'sedentary';
+        document.getElementById('hmWeight').value       = data.weight_kg    || '';
+        document.getElementById('hmHeight').value       = data.height_cm    || '';
+        document.getElementById('hmAge').value          = data.age          || '';
+        document.getElementById('hmSex').value          = data.sex          || 'male';
+        document.getElementById('hmIntensity').value    = data.exercise_intensity || 'sedentary';
+        document.getElementById('hmWeightTarget').value = data.weight_target || '';
 
         // Show targets if set
         if (data.calorie_target > 0) {
@@ -1898,7 +2206,8 @@ document.getElementById('healthMetricsForm').addEventListener('submit', async (e
             body: JSON.stringify({
                 weight_kg: weight, height_cm: height, age, sex,
                 exercise_intensity: intensity,
-                calorie_target: tdee, protein_target
+                calorie_target: tdee, protein_target,
+                weight_target: parseFloat(document.getElementById('hmWeightTarget').value) || 0
             })
         });
         loadHealthMetrics();
@@ -1944,7 +2253,35 @@ async function loadFoodLog(dateStr) {
     }
 }
 
+let activeMeal = 'breakfast';
+
+async function loadRecentFoods() {
+    try {
+        const res = await fetch('/api/food-log/recent');
+        const foods = await res.json();
+        const bar   = document.getElementById('recentFoodsBar');
+        const chips = document.getElementById('recentFoodsChips');
+        if (!foods.length) { bar.style.display = 'none'; return; }
+        bar.style.display = 'flex';
+        chips.innerHTML = '';
+        foods.forEach(f => {
+            const chip = document.createElement('button');
+            chip.className = 'recent-food-chip';
+            chip.textContent = f.food_name;
+            chip.title = `${f.calories} kcal · P: ${f.protein_g}g`;
+            chip.onclick = () => {
+                const cap = activeMeal.charAt(0).toUpperCase() + activeMeal.slice(1);
+                document.getElementById(`foodName${cap}`).value = f.food_name;
+                document.getElementById(`foodCal${cap}`).value  = f.calories;
+                document.getElementById(`foodProt${cap}`).value = f.protein_g;
+            };
+            chips.appendChild(chip);
+        });
+    } catch (e) { /* silent */ }
+}
+
 async function addFoodEntry(meal) {
+    activeMeal = meal;
     const cap   = meal.charAt(0).toUpperCase() + meal.slice(1);
     const name  = document.getElementById(`foodName${cap}`).value.trim();
     if (!name) return;
@@ -1965,6 +2302,7 @@ async function addFoodEntry(meal) {
         loadFoodLog(date);
         loadActivityLog(date);
         loadNutritionWeekChart();
+        loadRecentFoods();
         loadXP();
         loadXPLog();
     } catch (err) {
@@ -2246,25 +2584,36 @@ async function loadWeightLog() {
         const pRgb = cssVar('--color-primary-rgb');
         const pColor = cssVar('--color-primary');
 
+        const weightTarget = healthMetricsCache.weight_target || 0;
+        const datasets = [{
+            label: 'Weight (kg)',
+            data: data.map(d => d.weight_kg),
+            borderColor: pColor,
+            backgroundColor: `rgba(${pRgb}, 0.1)`,
+            tension: 0.3,
+            pointRadius: 4,
+            pointBackgroundColor: pColor,
+            fill: true
+        }];
+        if (weightTarget > 0) {
+            datasets.push({
+                label: `Target (${weightTarget} kg)`,
+                data: data.map(() => weightTarget),
+                borderColor: '#34d399',
+                borderDash: [6, 4],
+                borderWidth: 1.5,
+                pointRadius: 0,
+                fill: false
+            });
+        }
+
         const ctx = document.getElementById('weightChart').getContext('2d');
         weightChartInstance = new Chart(ctx, {
             type: 'line',
-            data: {
-                labels: data.map(d => d.date),
-                datasets: [{
-                    label: 'Weight (kg)',
-                    data: data.map(d => d.weight_kg),
-                    borderColor: pColor,
-                    backgroundColor: `rgba(${pRgb}, 0.1)`,
-                    tension: 0.3,
-                    pointRadius: 4,
-                    pointBackgroundColor: pColor,
-                    fill: true
-                }]
-            },
+            data: { labels: data.map(d => d.date), datasets },
             options: {
                 responsive: true,
-                plugins: { legend: { display: false } },
+                plugins: { legend: { display: weightTarget > 0, labels: { color: tickColor, boxWidth: 12 } } },
                 scales: {
                     y: { beginAtZero: false, grid: { color: gridColor }, ticks: { color: tickColor } },
                     x: { grid: { color: gridColor }, ticks: { color: tickColor } }
@@ -2355,8 +2704,9 @@ async function initializeApp() {
     loadWins();
     loadWeekChart();
     setupTaskForms();
-    loadAllTasks();
+    loadAllTasks().then(() => populateConditionsGoalSelect());
     loadRecipes();
+    loadYume();
     document.getElementById('currentDate').value = getLocalDateString();
     loadDailyGoals(getLocalDateString());
     loadFinance();
@@ -2372,6 +2722,7 @@ async function initializeApp() {
     loadActivityLog(getLocalDateString());
     loadWater(getLocalDateString());
     loadNutritionWeekChart();
+    loadRecentFoods();
     // XP system
     fetch('/api/xp/daily-check', { method: 'POST' }).then(() => {
         loadXP();

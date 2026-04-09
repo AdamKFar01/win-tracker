@@ -115,6 +115,10 @@ def init_db():
                   carb_target INTEGER DEFAULT 0,
                   fat_target INTEGER DEFAULT 0)''')
     c.execute('INSERT OR IGNORE INTO health_metrics (id) VALUES (1)')
+    try:
+        c.execute("ALTER TABLE health_metrics ADD COLUMN weight_target REAL DEFAULT 0")
+    except Exception:
+        pass
 
     # Food log table
     c.execute('''CREATE TABLE IF NOT EXISTS food_log
@@ -177,7 +181,11 @@ def init_db():
     try:
         c.execute("ALTER TABLE tasks ADD COLUMN xp_reward INTEGER DEFAULT 0")
     except Exception:
-        pass  # Column already exists
+        pass
+    try:
+        c.execute("ALTER TABLE tasks ADD COLUMN priority TEXT DEFAULT 'medium'")
+    except Exception:
+        pass
 
     # Mastered recipes table
     c.execute('''CREATE TABLE IF NOT EXISTS recipes
@@ -187,6 +195,37 @@ def init_db():
                   calories INTEGER DEFAULT 0,
                   description TEXT DEFAULT '',
                   created_at TEXT NOT NULL)''')
+
+    # Goal conditions table
+    c.execute('''CREATE TABLE IF NOT EXISTS goal_conditions
+                 (id INTEGER PRIMARY KEY AUTOINCREMENT,
+                  task_id INTEGER NOT NULL,
+                  condition_text TEXT NOT NULL,
+                  completed INTEGER DEFAULT 0,
+                  created_at TEXT NOT NULL)''')
+
+    # Yume categories table
+    c.execute('''CREATE TABLE IF NOT EXISTS yume_categories
+                 (id INTEGER PRIMARY KEY AUTOINCREMENT,
+                  name TEXT NOT NULL UNIQUE,
+                  created_at TEXT NOT NULL)''')
+
+    # Yume items table
+    c.execute('''CREATE TABLE IF NOT EXISTS yume_items
+                 (id INTEGER PRIMARY KEY AUTOINCREMENT,
+                  category_id INTEGER NOT NULL,
+                  text TEXT NOT NULL,
+                  rank TEXT DEFAULT 'B',
+                  completed INTEGER DEFAULT 0,
+                  created_at TEXT NOT NULL)''')
+    try:
+        c.execute("ALTER TABLE yume_items ADD COLUMN rank TEXT DEFAULT 'B'")
+    except Exception:
+        pass
+    try:
+        c.execute("ALTER TABLE yume_items ADD COLUMN completed INTEGER DEFAULT 0")
+    except Exception:
+        pass
 
     conn.commit()
     conn.close()
@@ -385,6 +424,22 @@ def daily_goals_api():
     date = request.args.get('date', datetime.now().strftime('%Y-%m-%d'))
     c.execute('SELECT * FROM daily_goals WHERE date = ?', (date,))
     row = c.fetchone()
+
+    # Compute streak: consecutive past days where all 3 goals were completed
+    streak = 0
+    check = datetime.strptime(date, '%Y-%m-%d') - timedelta(days=1)
+    while True:
+        ds = check.strftime('%Y-%m-%d')
+        c.execute('SELECT goal_1_complete, goal_2_complete, goal_3_complete, goal_1_text, goal_2_text, goal_3_text FROM daily_goals WHERE date = ?', (ds,))
+        sr = c.fetchone()
+        if sr and sr[3] and sr[4] and sr[5] and sr[0] and sr[1] and sr[2]:
+            streak += 1
+            check -= timedelta(days=1)
+        else:
+            break
+        if streak > 365:
+            break
+
     conn.close()
 
     if row:
@@ -392,13 +447,15 @@ def daily_goals_api():
             'date': row[1],
             'goal_1_text': row[2], 'goal_1_complete': bool(row[3]),
             'goal_2_text': row[4], 'goal_2_complete': bool(row[5]),
-            'goal_3_text': row[6], 'goal_3_complete': bool(row[7])
+            'goal_3_text': row[6], 'goal_3_complete': bool(row[7]),
+            'streak': streak
         })
     return jsonify({
         'date': date,
         'goal_1_text': '', 'goal_1_complete': False,
         'goal_2_text': '', 'goal_2_complete': False,
-        'goal_3_text': '', 'goal_3_complete': False
+        'goal_3_text': '', 'goal_3_complete': False,
+        'streak': streak
     })
 
 @app.route('/api/tasks', methods=['GET', 'POST', 'PUT', 'DELETE'])
@@ -420,10 +477,10 @@ def tasks():
         elif not due_date and period == 'monthly':
             due_date = (datetime.now() + timedelta(days=30)).strftime('%Y-%m-%d')
         
-        c.execute('''INSERT INTO tasks (task, task_type, period, due_date, created_at, xp_reward)
-                     VALUES (?, ?, ?, ?, ?, ?)''',
+        c.execute('''INSERT INTO tasks (task, task_type, period, due_date, created_at, xp_reward, priority)
+                     VALUES (?, ?, ?, ?, ?, ?, ?)''',
                   (data['task'], task_type, period, due_date, datetime.now().isoformat(),
-                   data.get('xp_reward', 0)))
+                   data.get('xp_reward', 0), data.get('priority', 'medium')))
         conn.commit()
         conn.close()
         return jsonify({'success': True})
@@ -461,24 +518,24 @@ def tasks():
         conn.row_factory = sqlite3.Row
         c = conn.cursor()
 
-        sel = 'SELECT id, task, task_type, period, completed, due_date, created_at, moved_to_old, xp_reward FROM tasks'
+        sel = 'SELECT id, task, task_type, period, completed, due_date, created_at, moved_to_old, xp_reward, priority FROM tasks'
 
         if period == 'old':
             today = now.strftime('%Y-%m-%d')
             c.execute(f'{sel} WHERE task_type = ? AND due_date < ? ORDER BY due_date DESC', (task_type, today))
         elif period == 'all':
-            c.execute(f'{sel} WHERE task_type = ? ORDER BY completed, due_date', (task_type,))
+            c.execute(f'{sel} WHERE task_type = ? ORDER BY completed, CASE priority WHEN \'high\' THEN 0 WHEN \'medium\' THEN 1 ELSE 2 END, due_date', (task_type,))
         elif period == 'weekly':
             week_start = (now - timedelta(days=now.weekday())).strftime('%Y-%m-%d')
-            c.execute(f'{sel} WHERE task_type = ? AND period = ? AND DATE(created_at) >= ? ORDER BY completed, created_at',
+            c.execute(f'{sel} WHERE task_type = ? AND period = ? AND DATE(created_at) >= ? ORDER BY completed, CASE priority WHEN \'high\' THEN 0 WHEN \'medium\' THEN 1 ELSE 2 END, created_at',
                      (task_type, period, week_start))
         elif period == 'monthly':
             month_start = now.replace(day=1).strftime('%Y-%m-%d')
-            c.execute(f'{sel} WHERE task_type = ? AND period = ? AND DATE(created_at) >= ? ORDER BY completed, created_at',
+            c.execute(f'{sel} WHERE task_type = ? AND period = ? AND DATE(created_at) >= ? ORDER BY completed, CASE priority WHEN \'high\' THEN 0 WHEN \'medium\' THEN 1 ELSE 2 END, created_at',
                      (task_type, period, month_start))
         elif period == 'yearly':
             year_start = now.replace(month=1, day=1).strftime('%Y-%m-%d')
-            c.execute(f'{sel} WHERE task_type = ? AND period = ? AND DATE(created_at) >= ? ORDER BY completed, created_at',
+            c.execute(f'{sel} WHERE task_type = ? AND period = ? AND DATE(created_at) >= ? ORDER BY completed, CASE priority WHEN \'high\' THEN 0 WHEN \'medium\' THEN 1 ELSE 2 END, created_at',
                      (task_type, period, year_start))
         else:
             c.execute(f'{sel} WHERE task_type = ? AND period = ? ORDER BY completed, due_date',
@@ -498,7 +555,8 @@ def tasks():
                 'due_date': task['due_date'],
                 'created_at': task['created_at'],
                 'moved_to_old': task['moved_to_old'],
-                'xp_reward': task['xp_reward']
+                'xp_reward': task['xp_reward'],
+                'priority': task['priority'] or 'medium'
             })
 
         return jsonify(tasks_list)
@@ -555,6 +613,22 @@ def finance():
             })
         
         return jsonify(finance_list)
+
+@app.route('/api/finance/monthly')
+def finance_monthly():
+    """Income vs expenses per month for the past 12 months."""
+    conn = sqlite3.connect(DB_PATH)
+    c = conn.cursor()
+    c.execute('''SELECT strftime('%Y-%m', date) as month,
+                        SUM(CASE WHEN type='income'  THEN amount ELSE 0 END) as income,
+                        SUM(CASE WHEN type='expense' THEN amount ELSE 0 END) as expenses
+                 FROM finance
+                 WHERE date >= date('now', '-12 months')
+                 GROUP BY month ORDER BY month''')
+    rows = c.fetchall()
+    conn.close()
+    return jsonify([{'month': r[0], 'income': r[1] or 0, 'expenses': r[2] or 0} for r in rows])
+
 
 @app.route('/api/activities', methods=['GET', 'POST', 'PUT', 'DELETE'])
 def activities_api():
@@ -801,13 +875,14 @@ def health_metrics_api():
         data = request.json
         c.execute('''INSERT OR REPLACE INTO health_metrics
                      (id, weight_kg, height_cm, age, sex, exercise_intensity,
-                      calorie_target, protein_target, carb_target, fat_target)
-                     VALUES (1, ?, ?, ?, ?, ?, ?, ?, ?, ?)''',
+                      calorie_target, protein_target, carb_target, fat_target, weight_target)
+                     VALUES (1, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''',
                   (data.get('weight_kg', 0), data.get('height_cm', 0),
                    data.get('age', 0), data.get('sex', 'male'),
                    data.get('exercise_intensity', 'sedentary'),
                    data.get('calorie_target', 0), data.get('protein_target', 0),
-                   data.get('carb_target', 0), data.get('fat_target', 0)))
+                   data.get('carb_target', 0), data.get('fat_target', 0),
+                   data.get('weight_target', 0)))
         conn.commit()
         conn.close()
         return jsonify({'success': True})
@@ -820,13 +895,30 @@ def health_metrics_api():
             'weight_kg': row[1], 'height_cm': row[2], 'age': row[3],
             'sex': row[4], 'exercise_intensity': row[5],
             'calorie_target': row[6], 'protein_target': row[7],
-            'carb_target': row[8], 'fat_target': row[9]
+            'carb_target': row[8], 'fat_target': row[9],
+            'weight_target': row[10] if len(row) > 10 else 0
         })
     return jsonify({
         'weight_kg': 0, 'height_cm': 0, 'age': 0, 'sex': 'male',
         'exercise_intensity': 'sedentary',
-        'calorie_target': 0, 'protein_target': 0, 'carb_target': 0, 'fat_target': 0
+        'calorie_target': 0, 'protein_target': 0, 'carb_target': 0, 'fat_target': 0,
+        'weight_target': 0
     })
+
+
+@app.route('/api/food-log/recent')
+def food_log_recent():
+    """Return the 10 most recently used unique food names with their avg macros."""
+    conn = sqlite3.connect(DB_PATH)
+    c = conn.cursor()
+    c.execute('''SELECT food_name, AVG(calories), AVG(protein_g)
+                 FROM food_log
+                 GROUP BY food_name
+                 ORDER BY MAX(created_at) DESC
+                 LIMIT 10''')
+    rows = c.fetchall()
+    conn.close()
+    return jsonify([{'food_name': r[0], 'calories': round(r[1] or 0), 'protein_g': round(r[2] or 0, 1)} for r in rows])
 
 
 @app.route('/api/nutrition-week')
@@ -1115,6 +1207,109 @@ def recipes():
             'id': r[0], 'name': r[1], 'protein_g': r[2],
             'calories': r[3], 'description': r[4], 'created_at': r[5]
         } for r in rows])
+
+
+@app.route('/api/goal-conditions', methods=['GET', 'POST', 'PUT', 'DELETE'])
+def goal_conditions():
+    conn = sqlite3.connect(DB_PATH)
+    c = conn.cursor()
+
+    if request.method == 'GET':
+        task_id = request.args.get('task_id')
+        c.execute('SELECT id, task_id, condition_text, completed FROM goal_conditions WHERE task_id = ? ORDER BY created_at', (task_id,))
+        rows = c.fetchall()
+        conn.close()
+        return jsonify([{'id': r[0], 'task_id': r[1], 'condition_text': r[2], 'completed': r[3]} for r in rows])
+
+    elif request.method == 'POST':
+        data = request.json
+        c.execute('INSERT INTO goal_conditions (task_id, condition_text, completed, created_at) VALUES (?, ?, 0, ?)',
+                  (data['task_id'], data['condition_text'], datetime.now().isoformat()))
+        conn.commit()
+        conn.close()
+        return jsonify({'success': True})
+
+    elif request.method == 'PUT':
+        data = request.json
+        c.execute('UPDATE goal_conditions SET completed = ? WHERE id = ?', (data['completed'], data['id']))
+        conn.commit()
+        conn.close()
+        return jsonify({'success': True})
+
+    elif request.method == 'DELETE':
+        cond_id = request.args.get('id')
+        c.execute('DELETE FROM goal_conditions WHERE id = ?', (cond_id,))
+        conn.commit()
+        conn.close()
+        return jsonify({'success': True})
+
+
+@app.route('/api/yume/categories', methods=['GET', 'POST', 'DELETE'])
+def yume_categories():
+    conn = sqlite3.connect(DB_PATH)
+    c = conn.cursor()
+
+    if request.method == 'GET':
+        c.execute('SELECT id, name FROM yume_categories ORDER BY name')
+        rows = c.fetchall()
+        conn.close()
+        return jsonify([{'id': r[0], 'name': r[1]} for r in rows])
+
+    elif request.method == 'POST':
+        data = request.json
+        try:
+            c.execute('INSERT INTO yume_categories (name, created_at) VALUES (?, ?)',
+                      (data['name'], datetime.now().isoformat()))
+            conn.commit()
+            cat_id = c.lastrowid
+            conn.close()
+            return jsonify({'success': True, 'id': cat_id})
+        except Exception:
+            conn.close()
+            return jsonify({'success': False, 'error': 'Category already exists'}), 400
+
+    elif request.method == 'DELETE':
+        cat_id = request.args.get('id')
+        c.execute('DELETE FROM yume_items WHERE category_id = ?', (cat_id,))
+        c.execute('DELETE FROM yume_categories WHERE id = ?', (cat_id,))
+        conn.commit()
+        conn.close()
+        return jsonify({'success': True})
+
+
+@app.route('/api/yume/items', methods=['GET', 'POST', 'PUT', 'DELETE'])
+def yume_items():
+    conn = sqlite3.connect(DB_PATH)
+    c = conn.cursor()
+
+    if request.method == 'GET':
+        cat_id = request.args.get('category_id')
+        c.execute('SELECT id, text, rank, completed FROM yume_items WHERE category_id = ? ORDER BY created_at', (cat_id,))
+        rows = c.fetchall()
+        conn.close()
+        return jsonify([{'id': r[0], 'text': r[1], 'rank': r[2] or 'B', 'completed': r[3] or 0} for r in rows])
+
+    elif request.method == 'POST':
+        data = request.json
+        c.execute('INSERT INTO yume_items (category_id, text, rank, completed, created_at) VALUES (?, ?, ?, 0, ?)',
+                  (data['category_id'], data['text'], data.get('rank', 'B'), datetime.now().isoformat()))
+        conn.commit()
+        conn.close()
+        return jsonify({'success': True})
+
+    elif request.method == 'PUT':
+        data = request.json
+        c.execute('UPDATE yume_items SET completed = ? WHERE id = ?', (data['completed'], data['id']))
+        conn.commit()
+        conn.close()
+        return jsonify({'success': True})
+
+    elif request.method == 'DELETE':
+        item_id = request.args.get('id')
+        c.execute('DELETE FROM yume_items WHERE id = ?', (item_id,))
+        conn.commit()
+        conn.close()
+        return jsonify({'success': True})
 
 
 if __name__ == '__main__':

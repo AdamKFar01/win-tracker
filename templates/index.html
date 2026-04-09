@@ -43,6 +43,7 @@
             <button class="tab-btn" data-tab="reminders" style="position:relative;">Reminders<img id="reminderBellBadge" src="" alt="" style="display:none;position:absolute;top:-8px;right:-8px;width:22px;height:22px;"></button>
             <button class="tab-btn" data-tab="finance">Finance</button>
             <button class="tab-btn" data-tab="health">Health</button>
+            <button class="tab-btn" data-tab="yume">夢</button>
         </nav>
 
         <!-- Dashboard Tab -->
@@ -324,6 +325,7 @@
             <div class="daily-goals-card" id="dailyGoalsCard">
                 <div class="daily-goals-header">
                     <h3 id="dailyGoalsTitle">Today's Goals</h3>
+                    <span class="daily-streak" id="dailyStreak" style="display:none">🔥 <span id="dailyStreakCount">0</span> day streak</span>
                 </div>
                 <div class="daily-goal-row">
                     <span class="goal-check-area" id="goalCheckArea1" onclick="toggleGoalComplete(1)">
@@ -357,6 +359,7 @@
                         <form id="weeklyGoalForm">
                             <input type="text" class="task-input" placeholder="Add a weekly goal..." required>
                             <input type="number" class="task-xp-input" placeholder="XP" min="0">
+                            <select class="priority-select"><option value="high">High</option><option value="medium" selected>Medium</option><option value="low">Low</option></select>
                             <button type="submit" class="btn-primary">Add</button>
                         </form>
                     </div>
@@ -375,6 +378,7 @@
                         <form id="monthlyGoalForm">
                             <input type="text" class="task-input" placeholder="Add a monthly goal..." required>
                             <input type="number" class="task-xp-input" placeholder="XP" min="0">
+                            <select class="priority-select"><option value="high">High</option><option value="medium" selected>Medium</option><option value="low">Low</option></select>
                             <button type="submit" class="btn-primary">Add</button>
                         </form>
                     </div>
@@ -393,6 +397,7 @@
                         <form id="yearlyGoalForm">
                             <input type="text" class="task-input" placeholder="Add a yearly goal..." required>
                             <input type="number" class="task-xp-input" placeholder="XP" min="0">
+                            <select class="priority-select"><option value="high">High</option><option value="medium" selected>Medium</option><option value="low">Low</option></select>
                             <button type="submit" class="btn-primary">Add</button>
                         </form>
                     </div>
@@ -431,10 +436,34 @@
                         <form id="lifelongGoalForm">
                             <input type="text" class="task-input" placeholder="Add a lifelong goal..." required>
                             <input type="number" class="task-xp-input" placeholder="XP" min="0">
+                            <select class="priority-select"><option value="high">High</option><option value="medium" selected>Medium</option><option value="low">Low</option></select>
                             <button type="submit" class="btn-primary">Add</button>
                         </form>
                     </div>
                     <div id="lifelongGoalsList"></div>
+                </div>
+            </div>
+
+            <!-- Goal Conditions -->
+            <div class="collapsible-section">
+                <div class="section-header">
+                    <button class="collapse-btn" onclick="toggleSection('goal-conditions')">⟩</button>
+                    <h3>Goal Conditions</h3>
+                </div>
+                <div class="section-content" id="goal-conditions">
+                    <p class="conditions-hint">Select a goal to view and add conditions (sub-steps) for it.</p>
+                    <div class="conditions-select-row">
+                        <select id="conditionsGoalSelect" class="conditions-goal-select" onchange="loadConditions()">
+                            <option value="">— Select a goal —</option>
+                        </select>
+                    </div>
+                    <div id="conditionsPanel" style="display:none;">
+                        <form id="conditionAddForm" class="conditions-add-form">
+                            <input type="text" id="conditionText" class="task-input" placeholder="Add a condition..." required>
+                            <button type="submit" class="btn-primary">Add</button>
+                        </form>
+                        <div id="conditionsList"></div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -557,7 +586,20 @@
                         </div>
                         <div class="form-group">
                             <label>Category</label>
-                            <input type="text" id="financeCategory" placeholder="e.g., Salary, Food, etc.">
+                            <select id="financeCategory">
+                                <option value="">— None —</option>
+                                <option value="Salary">Salary</option>
+                                <option value="Freelance">Freelance</option>
+                                <option value="Investment">Investment</option>
+                                <option value="Food">Food</option>
+                                <option value="Rent">Rent</option>
+                                <option value="Transport">Transport</option>
+                                <option value="Subscriptions">Subscriptions</option>
+                                <option value="Health">Health</option>
+                                <option value="Entertainment">Entertainment</option>
+                                <option value="Shopping">Shopping</option>
+                                <option value="Other">Other</option>
+                            </select>
                         </div>
                         <div class="form-group">
                             <label>Description</label>
@@ -583,6 +625,13 @@
             <div class="finance-list">
                 <h3>Recent Transactions</h3>
                 <div id="financeList"></div>
+            </div>
+
+            <div class="finance-monthly-card">
+                <h3>Monthly Overview</h3>
+                <div style="position:relative;height:220px;">
+                    <canvas id="financeMonthlyChart"></canvas>
+                </div>
             </div>
         </div>
 
@@ -620,6 +669,10 @@
                                     <input type="number" id="hmWeight" step="0.1" min="1" placeholder="70" required>
                                 </div>
                                 <div class="form-group">
+                                    <label>Target Weight (kg)</label>
+                                    <input type="number" id="hmWeightTarget" step="0.1" min="1" placeholder="65">
+                                </div>
+                                <div class="form-group">
                                     <label>Height (cm)</label>
                                     <input type="number" id="hmHeight" step="0.1" min="1" placeholder="175" required>
                                 </div>
@@ -653,6 +706,12 @@
                     <div class="health-date-bar">
                         <h3 id="healthDateLabel">Today's Log</h3>
                         <input type="date" id="healthDate">
+                    </div>
+
+                    <!-- Recent foods quick-add -->
+                    <div class="recent-foods-bar" id="recentFoodsBar" style="display:none">
+                        <span class="recent-foods-label">Recent:</span>
+                        <div class="recent-foods-chips" id="recentFoodsChips"></div>
                     </div>
 
                     <div class="meals-pair-row">
@@ -809,6 +868,21 @@
                 </div>
             </div>
         </div>
+
+        <!-- Yume Tab -->
+        <div class="tab-content" id="yume">
+            <h2>夢 — Dreams &amp; Vision</h2>
+
+            <div class="yume-add-category-row">
+                <form id="yumeCategoryForm" class="yume-category-form">
+                    <input type="text" id="yumeCategoryName" class="task-input" placeholder="New category (e.g. Travel, Career)..." required>
+                    <button type="submit" class="btn-primary">Add Category</button>
+                </form>
+            </div>
+
+            <div id="yumeCategoriesList"></div>
+        </div>
+
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
