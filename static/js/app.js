@@ -856,15 +856,22 @@ function toggleSection(sectionId) {
 const taskPeriods = ['today', 'weekly', 'monthly'];
 const goalPeriods = ['weekly', 'monthly', 'yearly', 'lifelong'];
 
+function priorityFromXP(xp, period) {
+    // Yearly and lifelong are always high regardless of XP
+    if (period === 'yearly' || period === 'lifelong') return 'high';
+    if (xp >= 50000) return 'high';
+    if (xp >= 10000) return 'medium';
+    return 'low';
+}
+
 // Setup all task forms (goal types only — Tasks tab removed)
 function setupTaskForms() {
     function bindGoalForm(formId, period) {
         document.getElementById(formId).addEventListener('submit', async (e) => {
             e.preventDefault();
-            const xpInput    = e.target.querySelector('.task-xp-input');
-            const xpReward   = xpInput ? (parseInt(xpInput.value) || 0) : 0;
-            const priorInput = e.target.querySelector('.priority-select');
-            const priority   = priorInput ? priorInput.value : 'medium';
+            const xpInput  = e.target.querySelector('.task-xp-input');
+            const xpReward = xpInput ? (parseInt(xpInput.value) || 0) : 0;
+            const priority = priorityFromXP(xpReward, period);
             await addTask(e.target.querySelector('.task-input').value, 'goal', period, xpReward, priority);
             e.target.reset();
         });
@@ -926,7 +933,9 @@ async function loadTasksByPeriod(period, listId, taskType) {
                 toggleTask(task.id, nowDone);
             };
 
-            const priority = task.priority || 'medium';
+            const periodDefaults2 = { weekly: 50, monthly: 100, yearly: 200, lifelong: 500, today: 25 };
+            const xpForPriority = task.xp_reward > 0 ? task.xp_reward : periodDefaults2[task.period] || 50;
+            const priority = priorityFromXP(xpForPriority, task.period);
             const priBadge = document.createElement('span');
             priBadge.className = `priority-badge priority-${priority}`;
             priBadge.textContent = priority.charAt(0).toUpperCase();
