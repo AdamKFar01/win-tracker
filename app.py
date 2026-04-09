@@ -179,6 +179,15 @@ def init_db():
     except Exception:
         pass  # Column already exists
 
+    # Mastered recipes table
+    c.execute('''CREATE TABLE IF NOT EXISTS recipes
+                 (id INTEGER PRIMARY KEY AUTOINCREMENT,
+                  name TEXT NOT NULL,
+                  protein_g INTEGER DEFAULT 0,
+                  calories INTEGER DEFAULT 0,
+                  description TEXT DEFAULT '',
+                  created_at TEXT NOT NULL)''')
+
     conn.commit()
     conn.close()
 
@@ -299,9 +308,16 @@ def week_data():
     week_data = []
     for i in range(7):
         date = (datetime.now() - timedelta(days=6-i)).strftime('%Y-%m-%d')
-        c.execute('SELECT SUM(points) FROM wins WHERE date = ?', (date,))
-        result = c.fetchone()
-        total = result[0] if result[0] else 0
+
+        c.execute('SELECT category, SUM(points) FROM wins WHERE date = ? GROUP BY category', (date,))
+        cat_rows = c.fetchall()
+        cats = {r[0].lower(): r[1] for r in cat_rows if r[0]}
+        physical = cats.get('physical', 0)
+        work     = cats.get('work', 0)
+        health   = cats.get('health', 0)
+        relationships = cats.get('relationships', 0)
+        mindset  = cats.get('mindset', 0)
+        total    = physical + work + health + relationships + mindset
 
         c.execute('''SELECT goal_1_text, goal_1_complete, goal_2_text, goal_2_complete,
                             goal_3_text, goal_3_complete
@@ -314,7 +330,11 @@ def week_data():
         else:
             goals_all_done = False
 
-        week_data.append({'date': date, 'points': total, 'goals_all_done': goals_all_done})
+        week_data.append({
+            'date': date, 'points': total, 'goals_all_done': goals_all_done,
+            'physical': physical, 'work': work, 'health': health,
+            'relationships': relationships, 'mindset': mindset, 'total': total
+        })
 
     conn.close()
     return jsonify(week_data)
@@ -410,14 +430,20 @@ def tasks():
     
     elif request.method == 'PUT':
         data = request.json
-        c.execute('SELECT completed, xp_reward, task FROM tasks WHERE id = ?', (data['id'],))
+        c.execute('SELECT completed, xp_reward, task, period FROM tasks WHERE id = ?', (data['id'],))
         old = c.fetchone()
         c.execute('UPDATE tasks SET completed = ? WHERE id = ?',
                   (data['completed'], data['id']))
-        # Award XP when newly completed and xp_reward is set
-        if data['completed'] == 1 and old and old[0] == 0 and old[1] and old[1] > 0:
-            award_xp(c, old[1], f"Goal: {old[2][:50]}")
-        conn.commit()
+        conn.commit()  # save the tick immediately — nothing below can undo this
+        # Award XP as a separate step so any failure doesn't affect the saved tick
+        if data['completed'] == 1 and old and old[0] == 0:
+            try:
+                period_defaults = {'weekly': 50, 'monthly': 100, 'yearly': 200, 'lifelong': 500, 'today': 25}
+                xp = old[1] if (old[1] and old[1] > 0) else period_defaults.get(old[3], 50)
+                award_xp(c, xp, f"Goal: {old[2][:50]}")
+                conn.commit()
+            except Exception:
+                pass
         conn.close()
         return jsonify({'success': True})
     
@@ -432,51 +458,49 @@ def tasks():
         task_type = request.args.get('type', 'task')
         period = request.args.get('period', 'all')
         now = datetime.now()
+        conn.row_factory = sqlite3.Row
+        c = conn.cursor()
+
+        sel = 'SELECT id, task, task_type, period, completed, due_date, created_at, moved_to_old, xp_reward FROM tasks'
 
         if period == 'old':
             today = now.strftime('%Y-%m-%d')
-            c.execute('''SELECT * FROM tasks
-                        WHERE task_type = ? AND due_date < ?
-                        ORDER BY due_date DESC''', (task_type, today))
+            c.execute(f'{sel} WHERE task_type = ? AND due_date < ? ORDER BY due_date DESC', (task_type, today))
         elif period == 'all':
-            c.execute('SELECT * FROM tasks WHERE task_type = ? ORDER BY completed, due_date', (task_type,))
+            c.execute(f'{sel} WHERE task_type = ? ORDER BY completed, due_date', (task_type,))
         elif period == 'weekly':
-            # Reset every Monday — only show goals created since this Monday
             week_start = (now - timedelta(days=now.weekday())).strftime('%Y-%m-%d')
-            c.execute('''SELECT * FROM tasks WHERE task_type = ? AND period = ?
-                         AND DATE(created_at) >= ? ORDER BY completed, created_at''',
+            c.execute(f'{sel} WHERE task_type = ? AND period = ? AND DATE(created_at) >= ? ORDER BY completed, created_at',
                      (task_type, period, week_start))
         elif period == 'monthly':
             month_start = now.replace(day=1).strftime('%Y-%m-%d')
-            c.execute('''SELECT * FROM tasks WHERE task_type = ? AND period = ?
-                         AND DATE(created_at) >= ? ORDER BY completed, created_at''',
+            c.execute(f'{sel} WHERE task_type = ? AND period = ? AND DATE(created_at) >= ? ORDER BY completed, created_at',
                      (task_type, period, month_start))
         elif period == 'yearly':
             year_start = now.replace(month=1, day=1).strftime('%Y-%m-%d')
-            c.execute('''SELECT * FROM tasks WHERE task_type = ? AND period = ?
-                         AND DATE(created_at) >= ? ORDER BY completed, created_at''',
+            c.execute(f'{sel} WHERE task_type = ? AND period = ? AND DATE(created_at) >= ? ORDER BY completed, created_at',
                      (task_type, period, year_start))
         else:
-            c.execute('SELECT * FROM tasks WHERE task_type = ? AND period = ? ORDER BY completed, due_date',
+            c.execute(f'{sel} WHERE task_type = ? AND period = ? ORDER BY completed, due_date',
                      (task_type, period))
-        
+
         tasks = c.fetchall()
         conn.close()
-        
+
         tasks_list = []
         for task in tasks:
             tasks_list.append({
-                'id': task[0],
-                'task': task[1],
-                'task_type': task[2],
-                'period': task[3],
-                'completed': task[4],
-                'due_date': task[5],
-                'created_at': task[6],
-                'moved_to_old': task[7] if len(task) > 7 else 0,
-                'xp_reward': task[8] if len(task) > 8 else 0
+                'id': task['id'],
+                'task': task['task'],
+                'task_type': task['task_type'],
+                'period': task['period'],
+                'completed': task['completed'],
+                'due_date': task['due_date'],
+                'created_at': task['created_at'],
+                'moved_to_old': task['moved_to_old'],
+                'xp_reward': task['xp_reward']
             })
-        
+
         return jsonify(tasks_list)
 
 @app.route('/api/finance', methods=['GET', 'POST'])
@@ -805,6 +829,20 @@ def health_metrics_api():
     })
 
 
+@app.route('/api/nutrition-week')
+def nutrition_week():
+    conn = sqlite3.connect(DB_PATH)
+    c = conn.cursor()
+    result = []
+    for i in range(7):
+        date = (datetime.now() - timedelta(days=6-i)).strftime('%Y-%m-%d')
+        c.execute('SELECT COALESCE(SUM(calories),0), COALESCE(SUM(protein_g),0) FROM food_log WHERE date = ?', (date,))
+        row = c.fetchone()
+        result.append({'date': date, 'calories': row[0] or 0, 'protein': row[1] or 0})
+    conn.close()
+    return jsonify(result)
+
+
 @app.route('/api/food-log', methods=['GET', 'POST', 'DELETE'])
 def food_log_api():
     conn = sqlite3.connect(DB_PATH)
@@ -1045,6 +1083,38 @@ def xp_daily_check():
     conn.commit()
     conn.close()
     return jsonify({'success': True})
+
+
+@app.route('/api/recipes', methods=['GET', 'POST', 'DELETE'])
+def recipes():
+    conn = sqlite3.connect(DB_PATH)
+    c = conn.cursor()
+
+    if request.method == 'POST':
+        data = request.json
+        c.execute('''INSERT INTO recipes (name, protein_g, calories, description, created_at)
+                     VALUES (?, ?, ?, ?, ?)''',
+                  (data['name'], int(data.get('protein_g', 0)), int(data.get('calories', 0)),
+                   data.get('description', ''), datetime.now().isoformat()))
+        conn.commit()
+        conn.close()
+        return jsonify({'success': True})
+
+    elif request.method == 'DELETE':
+        recipe_id = request.args.get('id')
+        c.execute('DELETE FROM recipes WHERE id = ?', (recipe_id,))
+        conn.commit()
+        conn.close()
+        return jsonify({'success': True})
+
+    else:
+        c.execute('SELECT id, name, protein_g, calories, description, created_at FROM recipes ORDER BY name')
+        rows = c.fetchall()
+        conn.close()
+        return jsonify([{
+            'id': r[0], 'name': r[1], 'protein_g': r[2],
+            'calories': r[3], 'description': r[4], 'created_at': r[5]
+        } for r in rows])
 
 
 if __name__ == '__main__':

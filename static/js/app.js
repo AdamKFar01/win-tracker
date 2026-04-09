@@ -13,7 +13,7 @@ function getThemeIcon() {
     const theme = document.documentElement.getAttribute('data-theme') || '1';
     if (theme === '2') return '/static/img/icon-r.png';
     if (theme === '3') return '/static/img/icon-n.png';
-    return '/static/img/icon-b.png';
+    return '/static/img/icon-g.png';
 }
 
 function getThemeBell(urgency) {
@@ -50,14 +50,17 @@ function applyColorTheme(themeNum) {
 }
 
 function rebuildAllCharts() {
-    if (pillarsChartInstance) { pillarsChartInstance.destroy(); pillarsChartInstance = null; }
-    if (weekChartInstance)    { weekChartInstance.destroy();    weekChartInstance    = null; }
-    if (balanceChartInstance) { balanceChartInstance.destroy(); balanceChartInstance = null; }
-    if (weightChartInstance)  { weightChartInstance.destroy();  weightChartInstance  = null; }
+    if (pillarsChartInstance)          { pillarsChartInstance.destroy();          pillarsChartInstance          = null; }
+    if (weekChartInstance)             { weekChartInstance.destroy();             weekChartInstance             = null; }
+    if (pillarWeekChartInstance)       { pillarWeekChartInstance.destroy();       pillarWeekChartInstance       = null; }
+    if (balanceChartInstance)          { balanceChartInstance.destroy();          balanceChartInstance          = null; }
+    if (weightChartInstance)           { weightChartInstance.destroy();           weightChartInstance           = null; }
+    if (nutritionWeekChartInstance)    { nutritionWeekChartInstance.destroy();    nutritionWeekChartInstance    = null; }
     loadPillarScores();
     loadWeekChart();
     loadFinance();
     loadWeightLog();
+    loadNutritionWeekChart();
 }
 
 // ── Light / dark toggle ──────────────────────────────────────
@@ -368,6 +371,7 @@ dateInput.value = getLocalDateString();
 dateInput.addEventListener('change', () => {
     loadDailySummary();
     loadWins();
+    loadDailyGoals(dateInput.value);
 });
 
 // Category change listener - populate activities
@@ -683,6 +687,7 @@ async function loadWins() {
 
 // Week chart
 let weekChartInstance = null;
+let pillarWeekChartInstance = null;
 let weekGoalsAllDone = [];
 const barLogoImg = new Image();
 barLogoImg.src = '/static/img/icon.png';
@@ -755,6 +760,64 @@ async function loadWeekChart() {
                 }
             },
             plugins: [barLogoPlugin]
+        });
+        // ── Pillar breakdown line chart ──────────────────────────
+        const isLight = document.documentElement.classList.contains('light-mode');
+        const gridColor = isLight ? 'rgba(0,0,0,0.07)' : 'rgba(255,255,255,0.08)';
+        const tickColor = isLight ? '#6b7280' : '#8b92b0';
+
+        const pillarColors = {
+            physical:      '#f59e0b',
+            work:          '#60a5fa',
+            health:        '#34d399',
+            relationships: '#f472b6',
+            mindset:       '#a78bfa',
+            total:         isLight ? '#6b7280' : '#e5e7eb',
+        };
+
+        const pillarLabels = {
+            physical: 'Physical', work: 'Work', health: 'Health',
+            relationships: 'Relationships', mindset: 'Mindset & Discipline', total: 'Total'
+        };
+
+        const pillarDatasets = Object.keys(pillarColors).map(key => ({
+            label: pillarLabels[key],
+            data: data.map(d => d[key] || 0),
+            borderColor: pillarColors[key],
+            backgroundColor: pillarColors[key] + '22',
+            borderWidth: 2,
+            pointRadius: 4,
+            pointHoverRadius: 6,
+            tension: 0.35,
+            fill: false,
+        }));
+
+        const pillarCtx = document.getElementById('pillarWeekChart').getContext('2d');
+        if (pillarWeekChartInstance) pillarWeekChartInstance.destroy();
+        pillarWeekChartInstance = new Chart(pillarCtx, {
+            type: 'line',
+            data: { labels, datasets: pillarDatasets },
+            options: {
+                responsive: true,
+                interaction: { mode: 'index', intersect: false },
+                plugins: {
+                    legend: {
+                        display: true,
+                        labels: { color: tickColor, boxWidth: 12, padding: 16 }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: { color: gridColor },
+                        ticks: { color: tickColor }
+                    },
+                    x: {
+                        grid: { color: gridColor },
+                        ticks: { color: tickColor }
+                    }
+                }
+            }
         });
     } catch (error) {
         console.error('Error loading week chart:', error);
@@ -867,12 +930,12 @@ async function loadTasksByPeriod(period, listId, taskType) {
             taskItem.appendChild(tick);
             taskItem.appendChild(textDiv);
 
-            if (task.xp_reward > 0) {
-                const badge = document.createElement('span');
-                badge.className = 'task-xp-badge';
-                badge.textContent = `+${task.xp_reward} XP`;
-                taskItem.appendChild(badge);
-            }
+            const periodDefaults = { weekly: 50, monthly: 100, yearly: 200, lifelong: 500, today: 25 };
+            const xpDisplay = task.xp_reward > 0 ? task.xp_reward : (periodDefaults[task.period] || 50);
+            const badge = document.createElement('span');
+            badge.className = 'task-xp-badge';
+            badge.textContent = `+${xpDisplay} XP`;
+            taskItem.appendChild(badge);
 
             const deleteBtn = document.createElement('button');
             deleteBtn.className = 'task-item-delete';
@@ -894,8 +957,8 @@ async function toggleTask(id, completed) {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ id, completed: completed ? 1 : 0 })
         });
-        loadAllTasks();
-        if (completed) { loadXP(); loadXPLog(); }
+        loadXP();
+        if (completed) loadXPLog();
     } catch (error) {
         console.error('Error updating task:', error);
     }
@@ -909,6 +972,89 @@ async function deleteTask(id) {
         loadAllTasks();
     } catch (error) {
         console.error('Error deleting task:', error);
+    }
+}
+
+// Mastered Recipes
+document.getElementById('recipeForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const name = document.getElementById('recipeName').value.trim();
+    if (!name) return;
+    await fetch('/api/recipes', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            name,
+            protein_g: parseInt(document.getElementById('recipeProtein').value) || 0,
+            calories: parseInt(document.getElementById('recipeCalories').value) || 0,
+            description: document.getElementById('recipeDescription').value.trim()
+        })
+    });
+    e.target.reset();
+    loadRecipes();
+});
+
+async function loadRecipes() {
+    try {
+        const res = await fetch('/api/recipes');
+        const recipes = await res.json();
+        const list = document.getElementById('recipesList');
+        list.innerHTML = '';
+        if (recipes.length === 0) {
+            list.innerHTML = '<p style="color:#8b92b0;text-align:center;padding:20px;">No recipes yet.</p>';
+            return;
+        }
+        recipes.forEach(r => {
+            const card = document.createElement('div');
+            card.className = 'recipe-card';
+
+            const header = document.createElement('div');
+            header.className = 'recipe-card-header';
+
+            const nameEl = document.createElement('div');
+            nameEl.className = 'recipe-card-name';
+            nameEl.textContent = r.name;
+
+            const stats = document.createElement('div');
+            stats.className = 'recipe-card-stats';
+            if (r.protein_g > 0) {
+                const p = document.createElement('span');
+                p.className = 'recipe-stat';
+                p.textContent = `${r.protein_g}g protein`;
+                stats.appendChild(p);
+            }
+            if (r.calories > 0) {
+                const c = document.createElement('span');
+                c.className = 'recipe-stat calories';
+                c.textContent = `${r.calories} kcal`;
+                stats.appendChild(c);
+            }
+
+            const delBtn = document.createElement('button');
+            delBtn.className = 'recipe-card-delete';
+            delBtn.textContent = 'Delete';
+            delBtn.onclick = async () => {
+                if (!confirm(`Delete "${r.name}"?`)) return;
+                await fetch(`/api/recipes?id=${r.id}`, { method: 'DELETE' });
+                loadRecipes();
+            };
+
+            header.appendChild(nameEl);
+            header.appendChild(stats);
+            header.appendChild(delBtn);
+            card.appendChild(header);
+
+            if (r.description) {
+                const desc = document.createElement('div');
+                desc.className = 'recipe-card-description';
+                desc.textContent = r.description;
+                card.appendChild(desc);
+            }
+
+            list.appendChild(card);
+        });
+    } catch (err) {
+        console.error('Error loading recipes:', err);
     }
 }
 
@@ -1641,10 +1787,11 @@ function toggleGoalComplete(n) {
     if (document.getElementById('dailyGoalsCard').classList.contains('readonly')) return;
     dailyGoalComplete[n - 1] = !dailyGoalComplete[n - 1];
     document.getElementById(`goalDoneIcon${n}`).style.display = dailyGoalComplete[n - 1] ? 'block' : 'none';
+    saveDailyGoals();
 }
 
 async function saveDailyGoals() {
-    const dateStr = document.getElementById('dailyGoalsDate').value;
+    const dateStr = document.getElementById('currentDate').value;
     try {
         await fetch('/api/daily-goals', {
             method: 'POST',
@@ -1667,9 +1814,7 @@ async function saveDailyGoals() {
     }
 }
 
-document.getElementById('dailyGoalsDate').addEventListener('change', (e) => {
-    loadDailyGoals(e.target.value);
-});
+
 
 // ── Health ─────────────────────────────────────────────────────
 
@@ -1695,7 +1840,8 @@ const ACTIVITY_MULTIPLIERS = {
 };
 
 let macroChartInstance = null;
-let healthMetricsCache = { weight_kg: 70, calorie_target: 0, protein_target: 0, carb_target: 0, fat_target: 0 };
+let nutritionWeekChartInstance = null;
+let healthMetricsCache = { weight_kg: 70, calorie_target: 0, protein_target: 0 };
 
 function toggleMetricsForm() {
     const form = document.getElementById('healthMetricsForm');
@@ -1719,8 +1865,6 @@ async function loadHealthMetrics() {
         if (data.calorie_target > 0) {
             document.getElementById('targetCalories').textContent = data.calorie_target;
             document.getElementById('targetProtein').textContent  = data.protein_target;
-            document.getElementById('targetCarbs').textContent    = data.carb_target;
-            document.getElementById('targetFat').textContent      = data.fat_target;
             document.getElementById('healthTargetsRow').style.display = 'flex';
             document.getElementById('healthMetricsForm').style.display = 'none';
         } else {
@@ -1747,9 +1891,6 @@ document.getElementById('healthMetricsForm').addEventListener('submit', async (e
 
     const tdee           = Math.round(bmr * ACTIVITY_MULTIPLIERS[intensity]);
     const protein_target = Math.round(weight * 2);
-    const carb_target    = Math.round((tdee * 0.40) / 4);
-    const fat_target     = Math.round((tdee * 0.30) / 9);
-
     try {
         await fetch('/api/health-metrics', {
             method: 'POST',
@@ -1757,7 +1898,7 @@ document.getElementById('healthMetricsForm').addEventListener('submit', async (e
             body: JSON.stringify({
                 weight_kg: weight, height_cm: height, age, sex,
                 exercise_intensity: intensity,
-                calorie_target: tdee, protein_target, carb_target, fat_target
+                calorie_target: tdee, protein_target
             })
         });
         loadHealthMetrics();
@@ -1790,7 +1931,7 @@ async function loadFoodLog(dateStr) {
                 row.innerHTML = `
                     <div class="health-food-item-info">
                         <span class="health-food-name">${entry.food_name}</span>
-                        <span class="health-food-macros">${entry.calories} kcal &nbsp;|&nbsp; P: ${entry.protein_g}g &nbsp;|&nbsp; C: ${entry.carbs_g}g &nbsp;|&nbsp; F: ${entry.fat_g}g</span>
+                        <span class="health-food-macros">${entry.calories} kcal &nbsp;|&nbsp; P: ${entry.protein_g}g</span>
                     </div>
                     <button class="task-item-delete" onclick="deleteFoodEntry(${entry.id})">Delete</button>
                 `;
@@ -1809,22 +1950,21 @@ async function addFoodEntry(meal) {
     if (!name) return;
     const cal   = parseFloat(document.getElementById(`foodCal${cap}`).value)  || 0;
     const prot  = parseFloat(document.getElementById(`foodProt${cap}`).value) || 0;
-    const carb  = parseFloat(document.getElementById(`foodCarb${cap}`).value) || 0;
-    const fat   = parseFloat(document.getElementById(`foodFat${cap}`).value)  || 0;
     const date  = document.getElementById('healthDate').value;
 
     try {
         await fetch('/api/food-log', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ date, meal, food_name: name, calories: cal, protein_g: prot, carbs_g: carb, fat_g: fat })
+            body: JSON.stringify({ date, meal, food_name: name, calories: cal, protein_g: prot })
         });
         // Clear inputs
-        ['foodName', 'foodCal', 'foodProt', 'foodCarb', 'foodFat'].forEach(prefix => {
+        ['foodName', 'foodCal', 'foodProt'].forEach(prefix => {
             document.getElementById(`${prefix}${cap}`).value = '';
         });
         loadFoodLog(date);
         loadActivityLog(date);
+        loadNutritionWeekChart();
         loadXP();
         loadXPLog();
     } catch (err) {
@@ -1838,6 +1978,7 @@ async function deleteFoodEntry(id) {
         await fetch(`/api/food-log?id=${id}`, { method: 'DELETE' });
         loadFoodLog(date);
         loadActivityLog(date);
+        loadNutritionWeekChart();
     } catch (err) {
         console.error('Error deleting food entry:', err);
     }
@@ -1852,12 +1993,10 @@ async function updateFoodSummary(entries) {
         } catch { entries = []; }
     }
 
-    let totalCal = 0, totalProt = 0, totalCarb = 0, totalFat = 0;
+    let totalCal = 0, totalProt = 0;
     entries.forEach(e => {
         totalCal  += e.calories  || 0;
         totalProt += e.protein_g || 0;
-        totalCarb += e.carbs_g   || 0;
-        totalFat  += e.fat_g     || 0;
     });
 
     const target = healthMetricsCache.calorie_target || 0;
@@ -1867,8 +2006,7 @@ async function updateFoodSummary(entries) {
     document.getElementById('summaryCalConsumed').textContent = Math.round(totalCal);
     document.getElementById('summaryCalTarget').textContent   = target > 0 ? target : '—';
     document.getElementById('summaryProtein').textContent     = totalProt.toFixed(1);
-    document.getElementById('summaryCarbs').textContent       = totalCarb.toFixed(1);
-    document.getElementById('summaryFat').textContent         = totalFat.toFixed(1);
+    document.getElementById('summaryCalTotal').textContent    = Math.round(totalCal);
 
     const bar = document.getElementById('caloriesBarFill');
     bar.style.width = pct + '%';
@@ -1877,16 +2015,18 @@ async function updateFoodSummary(entries) {
     // Macro doughnut
     const ctx = document.getElementById('macroChart').getContext('2d');
     if (macroChartInstance) macroChartInstance.destroy();
-    const hasData = totalProt + totalCarb + totalFat > 0;
+    const hasData = totalProt > 0 || totalCal > 0;
+    const protCal = totalProt * 4;
+    const otherCal = Math.max(0, totalCal - protCal);
     macroChartInstance = new Chart(ctx, {
         type: 'doughnut',
         data: {
-            labels: ['Carbs', 'Protein', 'Fat'],
+            labels: [`Protein (${Math.round(protCal)} kcal)`, `Other (${Math.round(otherCal)} kcal)`],
             datasets: [{
-                data: hasData ? [totalCarb, totalProt, totalFat] : [1, 1, 1],
+                data: hasData ? [protCal, otherCal] : [1, 1],
                 backgroundColor: hasData
-                    ? ['#c084fc', '#00c9a7', '#f59e0b']
-                    : ['rgba(255,255,255,0.08)', 'rgba(255,255,255,0.08)', 'rgba(255,255,255,0.08)'],
+                    ? ['#00c9a7', '#c084fc']
+                    : ['rgba(255,255,255,0.08)', 'rgba(255,255,255,0.08)'],
                 borderWidth: 0
             }]
         },
@@ -1896,6 +2036,75 @@ async function updateFoodSummary(entries) {
             plugins: { legend: { display: false } }
         }
     });
+}
+
+async function loadNutritionWeekChart() {
+    try {
+        const res = await fetch('/api/nutrition-week');
+        const data = await res.json();
+        const labels = data.map(d => {
+            const dt = new Date(d.date + 'T00:00:00');
+            return dt.toLocaleDateString('en-US', { weekday: 'short' });
+        });
+        const calories = data.map(d => d.calories);
+        const protein  = data.map(d => d.protein);
+
+        const ctx = document.getElementById('nutritionWeekChart').getContext('2d');
+        if (nutritionWeekChartInstance) nutritionWeekChartInstance.destroy();
+
+        const isLight  = document.documentElement.getAttribute('data-mode') === 'light';
+        const gridColor = isLight ? 'rgba(0,0,0,0.07)' : 'rgba(255,255,255,0.07)';
+        const textColor = isLight ? '#555' : '#a0aec0';
+
+        nutritionWeekChartInstance = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels,
+                datasets: [
+                    {
+                        label: 'Calories (kcal)',
+                        data: calories,
+                        backgroundColor: 'rgba(251,146,60,0.7)',
+                        borderColor: '#fb923c',
+                        borderWidth: 1,
+                        yAxisID: 'yLeft'
+                    },
+                    {
+                        label: 'Protein (g)',
+                        data: protein,
+                        backgroundColor: 'rgba(52,211,153,0.7)',
+                        borderColor: '#34d399',
+                        borderWidth: 1,
+                        yAxisID: 'yRight'
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                interaction: { mode: 'index', intersect: false },
+                scales: {
+                    x: { grid: { color: gridColor }, ticks: { color: textColor } },
+                    yLeft: {
+                        type: 'linear', position: 'left',
+                        grid: { color: gridColor },
+                        ticks: { color: '#fb923c' },
+                        title: { display: true, text: 'kcal', color: '#fb923c', font: { size: 11 } }
+                    },
+                    yRight: {
+                        type: 'linear', position: 'right',
+                        grid: { drawOnChartArea: false },
+                        ticks: { color: '#34d399' },
+                        title: { display: true, text: 'protein g', color: '#34d399', font: { size: 11 } }
+                    }
+                },
+                plugins: {
+                    legend: { labels: { color: textColor, boxWidth: 12 } }
+                }
+            }
+        });
+    } catch (err) {
+        console.error('Error loading nutrition week chart:', err);
+    }
 }
 
 // Water tracker
@@ -2147,7 +2356,8 @@ async function initializeApp() {
     loadWeekChart();
     setupTaskForms();
     loadAllTasks();
-    document.getElementById('dailyGoalsDate').value = getLocalDateString();
+    loadRecipes();
+    document.getElementById('currentDate').value = getLocalDateString();
     loadDailyGoals(getLocalDateString());
     loadFinance();
     setupReminderForms();
@@ -2161,6 +2371,7 @@ async function initializeApp() {
     loadFoodLog(getLocalDateString());
     loadActivityLog(getLocalDateString());
     loadWater(getLocalDateString());
+    loadNutritionWeekChart();
     // XP system
     fetch('/api/xp/daily-check', { method: 'POST' }).then(() => {
         loadXP();

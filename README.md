@@ -1,119 +1,36 @@
-# 🏆 WinnersTrack
+# WinnersTrack
 
-A personal productivity tracker that helps you build better habits by scoring your daily wins across five life categories. Hit 200 points per category and reach your 1000-point daily goal.
+A personal productivity and life tracker. Runs locally — no cloud, no accounts.
 
----
+## Stack
 
-## Features
+- Python 3 + Flask, SQLite, Vanilla JS/HTML/CSS, Chart.js
 
-- **Dashboard** — Log daily wins with points, duration, and notes. See your score per category and track the week with a bar chart.
-- **Tasks** — Manage to-do lists split into Today, Weekly, and Monthly. Expired tasks move to an Old Tasks archive.
-- **Goals** — Separate goal tracker for Weekly, Monthly, Yearly, and Lifelong goals.
-- **Calendar** — Add and view events by date with categories (University, Work, Health, etc.) and priority levels.
-- **Reminders** — Set Daily, One-Time, or Recurring (weekly/monthly) reminders with times.
-- **Finance** — Track income and expenses, view running balance, and browse recent transactions.
-
----
-
-## Tech Stack
-
-| Layer | Technology |
-|---|---|
-| Backend | Python 3 + Flask |
-| Database | SQLite (local file) |
-| Frontend | Vanilla JavaScript, HTML5, CSS3 |
-| Charts | Chart.js |
-| Font | Orbitron (Google Fonts) |
-
-No external database or cloud service required — everything runs locally.
-
----
-
-## Installation
-
-### Prerequisites
-
-- Python 3.7 or higher
-- pip
-
-### Steps
-
-**1. Clone the repository**
-
-```bash
-git clone https://github.com/AdamKFar01/win-tracker.git
-cd win-tracker
-```
-
-**2. Install dependencies**
-
-```bash
-pip install -r requirements.txt
-```
-
-**3. Run the app**
+## Run
 
 ```bash
 ./start.sh
+# → http://localhost:5000
 ```
 
-Or directly:
+Or: `python3 app.py`
 
-```bash
-python3 app.py
-```
+## Tabs
 
-**4. Open in your browser**
-
-```
-http://localhost:5001
-```
-
-The SQLite database (`wintracker.db`) is created automatically on first run.
-
----
-
-## Usage
-
-### Logging a Win
-
-1. Select a date (defaults to today)
-2. Pick a category — Physical, Mental, Health, Social, or Mood
-3. Choose an activity from the dropdown
-4. Points are auto-filled based on the activity
-5. Click **Add Win**
-
-### Managing Activities
-
-In the Dashboard, scroll to **Manage Activities** to add, edit, or delete preset activities and their point values for each category.
-
-### Points System
-
-| Category | Daily Goal |
-|---|---|
-| 💪 Physical | 200 pts |
-| ⛩️ Mental | 200 pts |
-| 🥩 Health | 200 pts |
-| 🃏 Social | 200 pts |
-| ☯️ Mood | 200 pts |
-| **Total** | **1000 pts** |
-
----
+- **Dashboard** — Log daily wins by category (Physical, Work, Health, Relationships, Mindset). XP system, weekly bar chart, per-pillar trend chart.
+- **Health** — Food log (breakfast, lunch, dinner, snacks), body metrics, daily weight tracking, weekly nutrition chart.
+- **Tasks** — Today / Weekly / Monthly tasks with XP on completion.
+- **Goals** — Weekly, Monthly, Yearly, Lifelong goals + Mastered Recipes.
+- **Calendar** — Events by date with category and priority.
+- **Reminders** — One-time, daily, or recurring reminders with urgency alerts.
+- **Finance** — Income/expense tracker with running balance.
 
 ## Data
 
-All data is stored locally in `wintracker.db` (SQLite). This file is excluded from git — back it up manually if needed.
+All data is stored in `wintracker.db` (SQLite, local). Excluded from git — back it up manually.
 
-To migrate an existing database to the latest schema:
+To update an existing database schema:
 
 ```bash
 python3 migrate_database.py
 ```
-
----
-
-## Development
-
-- Changes to HTML/CSS/JS take effect on browser refresh
-- Changes to `app.py` require restarting the server (`Ctrl+C` then run again)
-- Flask runs in debug mode by default on port 5000

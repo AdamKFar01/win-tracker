@@ -173,6 +173,7 @@
             <div class="week-chart">
                 <h2>This Week</h2>
                 <canvas id="weekChart"></canvas>
+                <canvas id="pillarWeekChart" style="margin-top:28px;"></canvas>
             </div>
 
             <!-- Activity Management Section -->
@@ -323,23 +324,22 @@
             <div class="daily-goals-card" id="dailyGoalsCard">
                 <div class="daily-goals-header">
                     <h3 id="dailyGoalsTitle">Today's Goals</h3>
-                    <input type="date" id="dailyGoalsDate">
                 </div>
                 <div class="daily-goal-row">
                     <span class="goal-check-area" id="goalCheckArea1" onclick="toggleGoalComplete(1)">
-                        <img src="/static/img/icon-b.png" class="goal-done-icon" id="goalDoneIcon1" alt="">
+                        <img src="/static/img/icon-g.png" class="goal-done-icon" id="goalDoneIcon1" alt="">
                     </span>
                     <input type="text" class="goal-text-input" id="goalText1" placeholder="Goal 1...">
                 </div>
                 <div class="daily-goal-row">
                     <span class="goal-check-area" id="goalCheckArea2" onclick="toggleGoalComplete(2)">
-                        <img src="/static/img/icon-b.png" class="goal-done-icon" id="goalDoneIcon2" alt="">
+                        <img src="/static/img/icon-g.png" class="goal-done-icon" id="goalDoneIcon2" alt="">
                     </span>
                     <input type="text" class="goal-text-input" id="goalText2" placeholder="Goal 2...">
                 </div>
                 <div class="daily-goal-row">
                     <span class="goal-check-area" id="goalCheckArea3" onclick="toggleGoalComplete(3)">
-                        <img src="/static/img/icon-b.png" class="goal-done-icon" id="goalDoneIcon3" alt="">
+                        <img src="/static/img/icon-g.png" class="goal-done-icon" id="goalDoneIcon3" alt="">
                     </span>
                     <input type="text" class="goal-text-input" id="goalText3" placeholder="Goal 3...">
                 </div>
@@ -397,6 +397,26 @@
                         </form>
                     </div>
                     <div id="yearlyGoalsList"></div>
+                </div>
+            </div>
+
+            <!-- Mastered Recipes -->
+            <div class="collapsible-section">
+                <div class="section-header">
+                    <button class="collapse-btn" onclick="toggleSection('mastered-recipes')">⟩</button>
+                    <h3>Mastered Recipes</h3>
+                </div>
+                <div class="section-content" id="mastered-recipes">
+                    <form id="recipeForm" class="recipe-form">
+                        <input type="text" id="recipeName" class="task-input" placeholder="Dish name..." required>
+                        <div class="recipe-form-row">
+                            <input type="number" id="recipeProtein" class="task-xp-input" placeholder="Protein (g)" min="0">
+                            <input type="number" id="recipeCalories" class="task-xp-input" placeholder="Calories" min="0">
+                        </div>
+                        <textarea id="recipeDescription" class="recipe-description-input" placeholder="Ingredients &amp; how to make it..."></textarea>
+                        <button type="submit" class="btn-primary">Add Recipe</button>
+                    </form>
+                    <div id="recipesList"></div>
                 </div>
             </div>
 
@@ -570,183 +590,159 @@
         <div class="tab-content" id="health">
             <h2>Health</h2>
 
-            <!-- Section 1: Body Metrics & Goals -->
-            <div class="health-metrics-card">
-                <div class="health-section-header">
-                    <h3>Body Metrics &amp; Goals</h3>
-                    <button class="btn-teal" id="toggleMetricsFormBtn" onclick="toggleMetricsForm()">Edit Metrics</button>
-                </div>
+            <!-- Two-column health layout -->
+            <div class="health-main-grid">
 
-                <div class="health-targets-row" id="healthTargetsRow" style="display:none">
-                    <div class="health-target-box calories-box">
-                        <div class="health-target-label">Calories</div>
-                        <div class="health-target-value" id="targetCalories">—</div>
-                        <div class="health-target-unit">kcal/day</div>
-                    </div>
-                    <div class="health-target-box protein-box">
-                        <div class="health-target-label">Protein</div>
-                        <div class="health-target-value" id="targetProtein">—</div>
-                        <div class="health-target-unit">g/day</div>
-                    </div>
-                    <div class="health-target-box carbs-box">
-                        <div class="health-target-label">Carbs</div>
-                        <div class="health-target-value" id="targetCarbs">—</div>
-                        <div class="health-target-unit">g/day</div>
-                    </div>
-                    <div class="health-target-box fat-box">
-                        <div class="health-target-label">Fat</div>
-                        <div class="health-target-value" id="targetFat">—</div>
-                        <div class="health-target-unit">g/day</div>
-                    </div>
-                </div>
-
-                <form id="healthMetricsForm" class="health-metrics-form">
-                    <div class="health-form-grid">
-                        <div class="form-group">
-                            <label>Weight (kg)</label>
-                            <input type="number" id="hmWeight" step="0.1" min="1" placeholder="70" required>
+                <!-- LEFT: Body Metrics + Today's Log -->
+                <div class="health-left-col">
+                    <!-- Body Metrics & Goals -->
+                    <div class="health-metrics-card">
+                        <div class="health-section-header">
+                            <h3>Body Metrics &amp; Goals</h3>
+                            <button class="btn-teal" id="toggleMetricsFormBtn" onclick="toggleMetricsForm()">Edit</button>
                         </div>
-                        <div class="form-group">
-                            <label>Height (cm)</label>
-                            <input type="number" id="hmHeight" step="0.1" min="1" placeholder="175" required>
-                        </div>
-                        <div class="form-group">
-                            <label>Age</label>
-                            <input type="number" id="hmAge" min="1" max="120" placeholder="25" required>
-                        </div>
-                        <div class="form-group">
-                            <label>Sex</label>
-                            <select id="hmSex">
-                                <option value="male">Male</option>
-                                <option value="female">Female</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label>Exercise Intensity</label>
-                            <select id="hmIntensity">
-                                <option value="sedentary">Sedentary</option>
-                                <option value="lightly_active">Lightly Active</option>
-                                <option value="moderately_active">Moderately Active</option>
-                                <option value="very_active">Very Active</option>
-                                <option value="athlete">Athlete</option>
-                            </select>
-                        </div>
-                    </div>
-                    <button type="submit" class="btn-teal">Calculate &amp; Save</button>
-                </form>
-            </div>
-
-            <!-- Section 2: Daily Food Log -->
-            <div class="health-date-bar">
-                <h3 id="healthDateLabel">Today's Log</h3>
-                <input type="date" id="healthDate">
-            </div>
-
-            <div class="health-food-columns">
-                <!-- Left: Meal logger -->
-                <div class="health-food-left">
-                    <!-- Breakfast -->
-                    <div class="health-meal-section">
-                        <h4 class="health-meal-title">Breakfast</h4>
-                        <div class="health-add-food-form">
-                            <input type="text" class="food-name-input" id="foodNameBreakfast" placeholder="Food name...">
-                            <div class="food-macros-row">
-                                <input type="number" class="food-macro-input" id="foodCalBreakfast" placeholder="kcal" min="0">
-                                <input type="number" class="food-macro-input" id="foodProtBreakfast" placeholder="P(g)" min="0" step="0.1">
-                                <input type="number" class="food-macro-input" id="foodCarbBreakfast" placeholder="C(g)" min="0" step="0.1">
-                                <input type="number" class="food-macro-input" id="foodFatBreakfast" placeholder="F(g)" min="0" step="0.1">
+                        <div class="health-targets-row" id="healthTargetsRow" style="display:none">
+                            <div class="health-target-box calories-box">
+                                <div class="health-target-label">Calories</div>
+                                <div class="health-target-value" id="targetCalories">—</div>
+                                <div class="health-target-unit">kcal/day</div>
                             </div>
-                            <button class="btn-teal btn-sm" onclick="addFoodEntry('breakfast')">Add</button>
+                            <div class="health-target-box protein-box">
+                                <div class="health-target-label">Protein</div>
+                                <div class="health-target-value" id="targetProtein">—</div>
+                                <div class="health-target-unit">g/day</div>
+                            </div>
                         </div>
-                        <div class="health-food-list" id="listBreakfast"></div>
+                        <form id="healthMetricsForm" class="health-metrics-form">
+                            <div class="health-form-grid">
+                                <div class="form-group">
+                                    <label>Weight (kg)</label>
+                                    <input type="number" id="hmWeight" step="0.1" min="1" placeholder="70" required>
+                                </div>
+                                <div class="form-group">
+                                    <label>Height (cm)</label>
+                                    <input type="number" id="hmHeight" step="0.1" min="1" placeholder="175" required>
+                                </div>
+                                <div class="form-group">
+                                    <label>Age</label>
+                                    <input type="number" id="hmAge" min="1" max="120" placeholder="25" required>
+                                </div>
+                                <div class="form-group">
+                                    <label>Sex</label>
+                                    <select id="hmSex">
+                                        <option value="male">Male</option>
+                                        <option value="female">Female</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>Exercise Intensity</label>
+                                    <select id="hmIntensity">
+                                        <option value="sedentary">Sedentary</option>
+                                        <option value="lightly_active">Lightly Active</option>
+                                        <option value="moderately_active">Moderately Active</option>
+                                        <option value="very_active">Very Active</option>
+                                        <option value="athlete">Athlete</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <button type="submit" class="btn-teal">Calculate &amp; Save</button>
+                        </form>
                     </div>
 
-                    <!-- Lunch -->
-                    <div class="health-meal-section">
-                        <h4 class="health-meal-title">Lunch</h4>
-                        <div class="health-add-food-form">
-                            <input type="text" class="food-name-input" id="foodNameLunch" placeholder="Food name...">
-                            <div class="food-macros-row">
-                                <input type="number" class="food-macro-input" id="foodCalLunch" placeholder="kcal" min="0">
-                                <input type="number" class="food-macro-input" id="foodProtLunch" placeholder="P(g)" min="0" step="0.1">
-                                <input type="number" class="food-macro-input" id="foodCarbLunch" placeholder="C(g)" min="0" step="0.1">
-                                <input type="number" class="food-macro-input" id="foodFatLunch" placeholder="F(g)" min="0" step="0.1">
-                            </div>
-                            <button class="btn-teal btn-sm" onclick="addFoodEntry('lunch')">Add</button>
-                        </div>
-                        <div class="health-food-list" id="listLunch"></div>
+                    <!-- Today's Food Log -->
+                    <div class="health-date-bar">
+                        <h3 id="healthDateLabel">Today's Log</h3>
+                        <input type="date" id="healthDate">
                     </div>
 
-                    <!-- Dinner -->
-                    <div class="health-meal-section">
-                        <h4 class="health-meal-title">Dinner</h4>
-                        <div class="health-add-food-form">
-                            <input type="text" class="food-name-input" id="foodNameDinner" placeholder="Food name...">
-                            <div class="food-macros-row">
-                                <input type="number" class="food-macro-input" id="foodCalDinner" placeholder="kcal" min="0">
-                                <input type="number" class="food-macro-input" id="foodProtDinner" placeholder="P(g)" min="0" step="0.1">
-                                <input type="number" class="food-macro-input" id="foodCarbDinner" placeholder="C(g)" min="0" step="0.1">
-                                <input type="number" class="food-macro-input" id="foodFatDinner" placeholder="F(g)" min="0" step="0.1">
+                    <div class="meals-pair-row">
+                        <div class="health-meal-section">
+                            <h4 class="health-meal-title">Breakfast</h4>
+                            <div class="health-add-food-form">
+                                <input type="text" class="food-name-input" id="foodNameBreakfast" placeholder="Food name...">
+                                <div class="food-macros-row">
+                                    <input type="number" class="food-macro-input" id="foodCalBreakfast" placeholder="kcal" min="0">
+                                    <input type="number" class="food-macro-input" id="foodProtBreakfast" placeholder="P(g)" min="0" step="0.1">
+                                </div>
+                                <button class="btn-teal btn-sm" onclick="addFoodEntry('breakfast')">Add</button>
                             </div>
-                            <button class="btn-teal btn-sm" onclick="addFoodEntry('dinner')">Add</button>
+                            <div class="health-food-list" id="listBreakfast"></div>
                         </div>
-                        <div class="health-food-list" id="listDinner"></div>
+
+                        <div class="health-meal-section">
+                            <h4 class="health-meal-title">Lunch</h4>
+                            <div class="health-add-food-form">
+                                <input type="text" class="food-name-input" id="foodNameLunch" placeholder="Food name...">
+                                <div class="food-macros-row">
+                                    <input type="number" class="food-macro-input" id="foodCalLunch" placeholder="kcal" min="0">
+                                    <input type="number" class="food-macro-input" id="foodProtLunch" placeholder="P(g)" min="0" step="0.1">
+                                </div>
+                                <button class="btn-teal btn-sm" onclick="addFoodEntry('lunch')">Add</button>
+                            </div>
+                            <div class="health-food-list" id="listLunch"></div>
+                        </div>
                     </div>
 
-                    <!-- Snacks -->
-                    <div class="health-meal-section">
-                        <h4 class="health-meal-title">Snacks</h4>
-                        <div class="health-add-food-form">
-                            <input type="text" class="food-name-input" id="foodNameSnacks" placeholder="Food name...">
-                            <div class="food-macros-row">
-                                <input type="number" class="food-macro-input" id="foodCalSnacks" placeholder="kcal" min="0">
-                                <input type="number" class="food-macro-input" id="foodProtSnacks" placeholder="P(g)" min="0" step="0.1">
-                                <input type="number" class="food-macro-input" id="foodCarbSnacks" placeholder="C(g)" min="0" step="0.1">
-                                <input type="number" class="food-macro-input" id="foodFatSnacks" placeholder="F(g)" min="0" step="0.1">
+                    <div class="meals-pair-row">
+                        <div class="health-meal-section">
+                            <h4 class="health-meal-title">Dinner</h4>
+                            <div class="health-add-food-form">
+                                <input type="text" class="food-name-input" id="foodNameDinner" placeholder="Food name...">
+                                <div class="food-macros-row">
+                                    <input type="number" class="food-macro-input" id="foodCalDinner" placeholder="kcal" min="0">
+                                    <input type="number" class="food-macro-input" id="foodProtDinner" placeholder="P(g)" min="0" step="0.1">
+                                </div>
+                                <button class="btn-teal btn-sm" onclick="addFoodEntry('dinner')">Add</button>
                             </div>
-                            <button class="btn-teal btn-sm" onclick="addFoodEntry('snacks')">Add</button>
+                            <div class="health-food-list" id="listDinner"></div>
                         </div>
-                        <div class="health-food-list" id="listSnacks"></div>
+
+                        <div class="health-meal-section">
+                            <h4 class="health-meal-title">Snacks</h4>
+                            <div class="health-add-food-form">
+                                <input type="text" class="food-name-input" id="foodNameSnacks" placeholder="Food name...">
+                                <div class="food-macros-row">
+                                    <input type="number" class="food-macro-input" id="foodCalSnacks" placeholder="kcal" min="0">
+                                    <input type="number" class="food-macro-input" id="foodProtSnacks" placeholder="P(g)" min="0" step="0.1">
+                                </div>
+                                <button class="btn-teal btn-sm" onclick="addFoodEntry('snacks')">Add</button>
+                            </div>
+                            <div class="health-food-list" id="listSnacks"></div>
+                        </div>
                     </div>
                 </div>
 
-                <!-- Right column: Daily Summary + Daily Weight -->
-                <div class="health-right-column">
+                <!-- RIGHT: Daily Summary + Daily Weight -->
+                <div class="health-right-col">
                     <div class="health-summary-right">
                         <h3>Daily Summary</h3>
-
                         <div class="health-summary-block">
                             <div class="health-summary-label">Calories <span id="summaryCalConsumed">0</span> / <span id="summaryCalTarget">—</span> kcal</div>
                             <div class="calories-bar-wrap">
                                 <div class="calories-bar-fill" id="caloriesBarFill" style="width:0%"></div>
                             </div>
                         </div>
-
                         <div class="health-summary-block">
                             <div class="health-summary-label">Macros</div>
                             <div class="health-macro-chart-wrap">
                                 <canvas id="macroChart"></canvas>
                             </div>
                             <div class="health-macro-legend">
-                                <span class="macro-legend-item carbs-legend">Carbs: <b id="summaryCarbs">0</b>g</span>
                                 <span class="macro-legend-item protein-legend">Protein: <b id="summaryProtein">0</b>g</span>
-                                <span class="macro-legend-item fat-legend">Fat: <b id="summaryFat">0</b>g</span>
+                                <span class="macro-legend-item calories-legend">Calories: <b id="summaryCalTotal">0</b> kcal</span>
                             </div>
                         </div>
-
                         <div class="health-summary-block">
                             <div class="health-summary-label">Water Intake</div>
                             <div class="water-tracker" id="waterTracker"></div>
                             <div class="water-count-label"><span id="waterCount">0</span> / 8 glasses</div>
                         </div>
-
                         <div class="health-summary-block">
                             <div class="health-summary-label">Today's Weight</div>
                             <div id="summaryWeight" style="font-size:1.4rem;font-weight:700;color:var(--color-primary)">—</div>
                         </div>
                     </div>
 
-                    <!-- Daily Weight: below Daily Summary, right of Dinner & Snacks -->
                     <div class="weight-checkin-card">
                         <h3>Daily Weight</h3>
                         <div class="weight-form-row">
@@ -756,6 +752,13 @@
                         </div>
                         <div class="weight-chart-container">
                             <canvas id="weightChart"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="weight-checkin-card">
+                        <h3>Nutrition This Week</h3>
+                        <div class="weight-chart-container">
+                            <canvas id="nutritionWeekChart"></canvas>
                         </div>
                     </div>
                 </div>
