@@ -553,7 +553,7 @@ function loadPillarsChart(scores) {
     const logoPlugin = {
         id: 'pillarsLogo',
         afterDraw(chart) {
-            if (!pillarsLogoImg.complete) return;
+            if (!pillarsLogoImg.complete || !pillarsLogoImg.naturalWidth) return;
             const { ctx: c } = chart;
             const cx = chart.scales.r.xCenter;
             const cy = chart.scales.r.yCenter;
@@ -696,7 +696,7 @@ barLogoImg.src = '/static/img/icon.png';
 const barLogoPlugin = {
     id: 'barLogo',
     afterDatasetsDraw(chart) {
-        if (!barLogoImg.complete) return;
+        if (!barLogoImg.complete || !barLogoImg.naturalWidth) return;
         const { ctx, data } = chart;
         const dataset = chart.getDatasetMeta(0);
         const size = 22;
