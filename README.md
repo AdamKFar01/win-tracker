@@ -27,7 +27,7 @@ I chose SQLite because there's one user and no concurrency. I chose vanilla JS b
 ## Key systems
 
 **XP & Streak Engine**
-Users earn XP by logging wins across five life pillars: Physical, Work, Health, Relationships, and Mindset. Each activity is worth a configurable number of points. A "perfect day" requires 1000+ points *and* all three daily goals completed, which awards a 200 XP bonus on top. Missing a day costs 50 XP; two consecutive misses cost 100 XP. This is enforced by a `/api/xp/daily-check` endpoint called every time the app loads, so the streak state stays accurate even if you forget to open the app for a couple of days.
+Users earn XP by logging wins across five life pillars: Physical, Work, Health, Relationships, and Mindset. Each activity is worth a configurable number of points. A "good day" requires 1000+ points *and* all three daily goals completed, which awards a 200 XP bonus on top. Missing a day costs 50 XP; two consecutive misses cost 100 XP. This is enforced by a `/api/xp/daily-check` endpoint called every time the app loads, so the streak state stays accurate even if you forget to open the app for a couple of days.
 
 **Health & Nutrition Tracker**
 Logs food by meal (breakfast, lunch, dinner, snacks) with per-item macros (calories, protein, carbs, fat). Aggregates daily totals against configurable targets. Also tracks body metrics (weight, height, body fat) with a running weight chart and weekly nutrition chart.
